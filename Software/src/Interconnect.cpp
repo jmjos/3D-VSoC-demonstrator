@@ -9,8 +9,6 @@ Interconnect::Interconnect(const sc_module_name &nm) : sc_module(nm){
 }
 
 void Interconnect::transmitImage(address_t dst, std::vector<control_t> control, std::vector<image_t> *data){
-    switch (dst){
-        case 1:
-
-    }
+    assert(dst<=componentCount);
+    ports[dst]->transmitImage(dst, control, data);
 }

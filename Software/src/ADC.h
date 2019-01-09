@@ -14,7 +14,7 @@ class ADC : public sc_module{
 private:
     address_t addr;
 
-    const int framerate = 30;
+    const int framerate = 3;
 
 public:
 

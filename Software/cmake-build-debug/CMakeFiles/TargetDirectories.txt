@@ -1,3 +1,0 @@
-/home/joseph/Documents/git/3D-VSoC-demonstrator/Software/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/joseph/Documents/git/3D-VSoC-demonstrator/Software/cmake-build-debug/CMakeFiles/sim.dir
-/home/joseph/Documents/git/3D-VSoC-demonstrator/Software/cmake-build-debug/CMakeFiles/edit_cache.dir
