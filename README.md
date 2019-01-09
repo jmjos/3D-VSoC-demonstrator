@@ -9,4 +9,5 @@
 
 | adr | component   |
 |-----|-------------|
-| 1-9 | ADC ul to dr|
+| 0-8 | ADC ul to dr|
+| 9-17| BAyer CPU ul to dr|

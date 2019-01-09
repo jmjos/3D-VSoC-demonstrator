@@ -13,8 +13,8 @@
 
 class VSoC : public sc_module {
 
-    ADC *adc;
-    CPU_Bayer *cpu;
+    ADC *adc[9];
+    CPU_Bayer *cpuBayer[9];
     Interconnect *interconnect;
 
 public:

@@ -10,7 +10,7 @@
 
 #include "TransmissionInterface.h"
 
-class ADC : public sc_module{
+class ADC : public sc_module, public TransmissionInterface{
 private:
     address_t addr;
 
@@ -18,11 +18,12 @@ private:
 
 public:
 
-    sc_port<TransmissionInterface> image_port;
+    sc_port<TransmissionInterface> imagePort;
     SC_HAS_PROCESS(ADC);
     ADC(const sc_module_name &nm, address_t addr);
 
     void process();
+    virtual void transmitImage(address_t src, address_t dst, std::vector<control_t> control, std::vector<image_t> *data);
 };
 
 

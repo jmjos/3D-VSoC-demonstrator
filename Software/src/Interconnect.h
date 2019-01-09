@@ -10,14 +10,13 @@
 
 class Interconnect : public sc_module, public TransmissionInterface {
 public:
-    static const int componentCount = 1;
+    static const int componentCount = 18;
     sc_port<TransmissionInterface> ports[componentCount];
 
     SC_HAS_PROCESS(Interconnect);
     Interconnect(const sc_module_name &nm);
 
-
-    virtual void transmitImage(address_t dst, std::vector<control_t> control, std::vector<image_t> *data);
+    virtual void transmitImage(address_t  src, address_t dst, std::vector<control_t> control, std::vector<image_t> *data);
 
 
 };
