@@ -6,7 +6,14 @@
 #define SIM_INTERCONNECT_H
 
 
-class Interconnect {
+#include "TransmissionInterface.h"
+
+class Interconnect : public sc_module, public TransmissionInterface {
+public:
+    sc_port <TransmissionInterface> bayerPort;
+
+    virtual void transmitImage(address_t dst, std::vector<control_t> control, std::vector<image_t> *data);
+
 
 };
 

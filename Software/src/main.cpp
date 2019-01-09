@@ -5,9 +5,8 @@
 
 int sc_main(int arg_num, char *arg_vec[]) {
 
-    //Top top("top");
     VSoC vsoc("VSoC");
 
-    sc_start();
+    sc_start(10, SC_SEC);
     return 0;
 }

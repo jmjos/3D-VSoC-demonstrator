@@ -23,7 +23,6 @@ private:
     void proc(); // this is the actual process, which executes the image processing
 
 public:
-    //sc_port<TransmissionInterface> input_port;
 
     SC_HAS_PROCESS(CPU_Bayer);
     CPU_Bayer(const sc_module_name &nm, address_t addr);

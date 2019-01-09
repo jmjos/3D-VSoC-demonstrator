@@ -14,12 +14,15 @@ class ADC : public sc_module{
 private:
     address_t addr;
 
-public:
-    sc_port<TransmissionInterface> transmissionPort;
+    const int framerate = 30;
 
+public:
+
+    sc_port<TransmissionInterface> image_port;
     SC_HAS_PROCESS(ADC);
     ADC(const sc_module_name &nm, address_t addr);
 
+    void process();
 };
 
 
