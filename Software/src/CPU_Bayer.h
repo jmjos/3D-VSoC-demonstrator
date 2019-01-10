@@ -30,7 +30,9 @@ private:
     std::vector<image_t> left_down;
     std::vector<image_t> right_down;
 
-    void proc(); // this is the actual process, which executes the image processing
+    void sendProcess(); // this is the actual process, which executes the image processing
+
+    sc_event sendEv;
 
 public:
 

@@ -5,7 +5,7 @@
 #include "CPU_Bayer.h"
 
 CPU_Bayer::CPU_Bayer(const sc_module_name &nm, address_t addr) : sc_module(nm), addr(addr){
-
+    SC_THREAD(sendProcess)
 }
 
 void CPU_Bayer::transmitImage(address_t src, address_t dst, std::vector<control_t> control, std::vector<image_t> *data){
@@ -13,9 +13,17 @@ void CPU_Bayer::transmitImage(address_t src, address_t dst, std::vector<control_
     cout << " Bayer CPU " << addr << " recieved data at " << sc_time_stamp() << endl;
     switch (control[1]){
         case 0:
-            assert (!leftUpValid)
-            left_up = data; //memcopy!!!
+            assert (!leftUpValid);
+            //TODO left_up = data; //memcopy!!!
             leftUpValid = true;
+            sendEv.notify();
             break;
+    }
+}
+
+void CPU_Bayer::sendProcess(){
+    while(1) {
+        wait(sendEv);
+        cout << "the event was triggered correctly at" << sc_time_stamp() << endl;
     }
 }
