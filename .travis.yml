@@ -15,6 +15,7 @@ before_script:
         - make -j
         - sudo mkdir /usr/local/systemc-2.3.3
         - sudo make install
+        - sudo sed -i '/using std::gets;/d' /usr/local/systemc-2.3.3/include/systemc.h
         - cd ../..
         - cd Software
         - mkdir build
