@@ -6,9 +6,9 @@ compiler: gcc
 
 before_script:
         - mkdir systemc
-        - wget https://accellera.org/images/downloads/standards/systemc/systemc-2.3.3.zip
-        - unzip systemc-2.3.3.zip
-        - cd systemc-2.3.3
+        - wget https://accellera.org/images/downloads/standards/systemc/systemc-2.3.1a.tar.gz
+        - tar -xf systemc-2.3.1a.tar.gz
+        - cd systemc-2.3.1a
         - mkdir objdir
         - cd objdir
         - ../configure --prefix=/usr/local/systemc-2.3.3
