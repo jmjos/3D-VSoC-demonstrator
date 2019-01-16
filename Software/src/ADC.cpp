@@ -16,7 +16,7 @@ void ADC::process() {
         cout << "ADC can now send." << endl;
 
         //send middle data to counterpart
-        std::vector<image_t> image = {2, 2};
+        image_t image = {2, 2};
         // control: first field: position. second field: length of data
         std::vector<control_t> control = {1, 2};
 
@@ -27,7 +27,7 @@ void ADC::process() {
     }
 }
 
-void ADC::transmitImage(address_t src, address_t dst, std::vector<control_t> control, std::vector<image_t> *data){
+void ADC::transmitImage(address_t src, address_t dst, std::vector<control_t> control, image_t *data){
     assert(addr==dst);
     cout << "ADC " << addr << " recieved data to " << dst << " at " << sc_time_stamp() << endl;
     sendEv.notify(SC_ZERO_TIME);

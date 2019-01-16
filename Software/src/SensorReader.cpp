@@ -20,7 +20,7 @@ void SensorReader::process() {
         for (address_t dst = 0; dst <=8; dst++){
             address_t src = 999;
 
-            std::vector<image_t> image = {2, 2};
+            image_t image = {2, 2};
             // control: first field: position. second field: length of data
             std::vector<control_t> control = {1, 2};
 

@@ -26,7 +26,7 @@ public:
     ADC(const sc_module_name &nm, address_t addr);
 
     void process();
-    virtual void transmitImage(address_t src, address_t dst, std::vector<control_t> control, std::vector<image_t> *data);
+    virtual void transmitImage(address_t src, address_t dst, std::vector<control_t> control, image_t *data);
 };
 
 
