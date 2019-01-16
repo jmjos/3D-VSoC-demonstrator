@@ -1,8 +1,8 @@
 # 3D VSoC Demonstrator
 
-[![CodeFactor](https://www.codefactor.io/repository/github/jmjos/3d-vsoc-demonstrator/badge)](https://www.codefactor.io/repository/github/jmjos/3d-vsoc-demonstrator)
 [![Build Status](https://travis-ci.com/jmjos/3D-VSoC-demonstrator.svg?branch=master)](https://travis-ci.com/jmjos/3D-VSoC-demonstrator)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/e7c97c7a500a4e2cbf211dd1c7712346)](https://www.codacy.com/app/jmjos/3D-VSoC-demonstrator?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jmjos/3D-VSoC-demonstrator&amp;utm_campaign=Badge_Grade)
+[![CodeFactor](https://www.codefactor.io/repository/github/jmjos/3d-vsoc-demonstrator/badge)](https://www.codefactor.io/repository/github/jmjos/3d-vsoc-demonstrator)
 
 ## Software
 
