@@ -9,12 +9,13 @@
 
 #include "TransmissionInterface.h"
 #include "GlobalConfiguration.h"
+#include "ImageFactory.h"
 
 class SensorReader : public sc_module {
 private:
     int currentFrame = 0;
     GlobalConfiguration &global = GlobalConfiguration::getInstance();
-
+    ImageFactory &imageFactory = ImageFactory::getInstance();
 
 
 public:

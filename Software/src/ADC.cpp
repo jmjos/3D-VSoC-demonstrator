@@ -11,7 +11,7 @@ ADC::ADC(const sc_module_name &nm, address_t addr) : addr(addr) {
 }
 
 void ADC::process() {
-    while (1){
+    for (int i = 0; i < INT_MAX; ++i) {
         wait(sendEv);
         cout << "ADC can now send." << endl;
 
@@ -30,6 +30,6 @@ void ADC::process() {
 void ADC::transmitImage(address_t src, address_t dst, std::vector<control_t> control, image_t *data){
     assert(addr==dst);
     cout << "ADC " << addr << " recieved data to " << dst << " at " << sc_time_stamp() << endl;
+    cout << "ADC can read image data: " << data->at(0) << endl;
     sendEv.notify(SC_ZERO_TIME);
-
 };

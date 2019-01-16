@@ -11,14 +11,14 @@ ImageFactory& ImageFactory::getInstance()
     return instance;
 }
 
-image_t* ImageFactory::createPacket()
+image_t* ImageFactory::createImage()
 {
-    image_t image = {1, 2};
-    images.push_back(&image);
-    return &image;
+    auto image = new image_t ({1,2});
+    images.push_back(image);
+    return image;
 }
 
-void ImageFactory::deletePacket(image_t* image)
+void ImageFactory::deleteImage(image_t *image)
 {
     auto it = std::find(images.begin(), images.end(), image);
     delete(*it);

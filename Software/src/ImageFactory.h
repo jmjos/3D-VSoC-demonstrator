@@ -12,8 +12,8 @@ class ImageFactory {
 public:
     std::vector<image_t*> images;
     static ImageFactory& getInstance();
-    image_t* createPacket();
-    void deletePacket(image_t* image);
+    image_t* createImage();
+    void deleteImage(image_t *image);
 };
 
 
