@@ -11,7 +11,7 @@ before_script:
         - cd systemc-2.3.3
         - mkdir objdir
         - cd objdir
-        - ../configure --prefix=/usr/local/systemc-2.2.3
+        - ../configure --prefix=/usr/local/systemc-2.3.3
         - make -j
         - sudo mkdir /usr/local/systemc-2.3.3
         - sudo make install
