@@ -9,6 +9,13 @@
 
 class CPU_Bayer : public sc_module, public TransmissionInterface {
 private:
+    static const int xSize = 5;
+    static const int ySize = 5;
+    static const int borderSize = 1;
+
+    std::vector<image_t> imageData;
+    std::vector<bool> validData;
+
     address_t addr = 0;
     bool centerValid= false;
     bool leftValid= false;
@@ -19,6 +26,8 @@ private:
     bool rightUpValid= false;
     bool leftDownValid= false;
     bool rightDownValid = false;
+
+
 
     std::vector<image_t> center;
     std::vector<image_t> left;

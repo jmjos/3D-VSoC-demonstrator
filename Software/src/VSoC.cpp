@@ -6,6 +6,9 @@
 
 VSoC::VSoC(const sc_module_name &nm) {
 
+    //Sensor reader reads image data
+    reader = std::make_unique<SensorReader>("SensorReader");
+
     //instances of adcs with addrs 0 to 8
     adc[0] = new ADC("ADC0", 0); //u l
     adc[1] = new ADC("ADC1", 1); //u m
@@ -30,6 +33,12 @@ VSoC::VSoC(const sc_module_name &nm) {
 
     //interconnect network. spreads messages to correct dst and writes trace file
     interconnect = new Interconnect("Interconnect");
+
+    //connect SensorReader to all ADCs
+    int i =0;
+    for (auto it : adc){
+        reader->imagePort[i++](*it);
+    }
 
     // connect outgoing ports of ADCs to Interconnect
     for (auto it : adc) {

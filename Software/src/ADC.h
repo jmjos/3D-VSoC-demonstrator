@@ -9,12 +9,15 @@
 #include <vector>
 
 #include "TransmissionInterface.h"
+#include "GlobalConfiguration.h"
 
 class ADC : public sc_module, public TransmissionInterface{
 private:
+    GlobalConfiguration &global = GlobalConfiguration::getInstance();
+
     address_t addr;
 
-    const int framerate = 3;
+    sc_event sendEv;
 
 public:
 

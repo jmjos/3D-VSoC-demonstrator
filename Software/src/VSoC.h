@@ -9,10 +9,12 @@
 
 #include "ADC.h"
 #include "CPU_Bayer.h"
+#include "SensorReader.h"
 #include "Interconnect.h"
 
 class VSoC : public sc_module {
 
+    std::unique_ptr<SensorReader>reader;
     ADC *adc[9];
     CPU_Bayer *cpuBayer[9];
     Interconnect *interconnect;

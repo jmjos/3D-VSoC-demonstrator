@@ -11,21 +11,25 @@ ADC::ADC(const sc_module_name &nm, address_t addr) : addr(addr) {
 }
 
 void ADC::process() {
-    while(1){
-        if (addr == 0) {
-            cout << "ADC " << addr << " sends data at " << sc_time_stamp() << endl;
+    while (1){
+        wait(sendEv);
+        cout << "ADC can now send." << endl;
 
-            std::vector<control_t> control = {1, 2};
-            std::vector<image_t> image = {2, 2};
-            address_t dest = 1;
+        //send middle data to counterpart
+        std::vector<image_t> image = {2, 2};
+        // control: first field: position. second field: length of data
+        std::vector<control_t> control = {1, 2};
 
-            imagePort->transmitImage(addr, 9, control, &image);
-        }
-        wait(1 / (double) framerate, SC_SEC);
+        imagePort->transmitImage(addr, addr+9, control, &image);
+        //send edge data
+
+
     }
 }
 
 void ADC::transmitImage(address_t src, address_t dst, std::vector<control_t> control, std::vector<image_t> *data){
     assert(addr==dst);
-    cout << "ADC " << addr << " recieved data at " << sc_time_stamp() << endl;
+    cout << "ADC " << addr << " recieved data to " << dst << " at " << sc_time_stamp() << endl;
+    sendEv.notify(SC_ZERO_TIME);
+
 };
