@@ -3,6 +3,7 @@
 //
 
 #include "CPU_Bayer.h"
+#include "GlobalConfiguration.h"
 
 CPU_Bayer::CPU_Bayer(const sc_module_name &nm, address_t addr) : sc_module(nm), addr(addr){
     imageData.resize(xSize*ySize);
@@ -12,6 +13,7 @@ CPU_Bayer::CPU_Bayer(const sc_module_name &nm, address_t addr) : sc_module(nm), 
 
 void CPU_Bayer::transmitImage(address_t src, address_t dst, control_t control, image_t *data) {
     assert(addr == dst);
+    if (global.VERBOSE_RECEIVE || global.VERBOSE_RECEIVE_BAYER)
     cout << " Bayer CPU " << addr << " recieved data at " << sc_time_stamp() << endl;
     //assert(!validData[control[0]]);
     /*int xStart = 0;
@@ -35,7 +37,8 @@ void CPU_Bayer::transmitImage(address_t src, address_t dst, control_t control, i
 void CPU_Bayer::sendProcess(){
     while(1) {
         wait(sendEv);
-        cout << "the event was triggered correctly at" << sc_time_stamp() << endl;
+        if (global.VERBOSE_SEND || global.VERBOSE_SEND_BAYER)
+            cout << "the event was triggered correctly at" << sc_time_stamp() << endl;
 
         //check if all data are availabe. send data.
     }

@@ -6,9 +6,12 @@
 #define SIM_CPU_1_H
 
 #include "TransmissionInterface.h"
+#include "GlobalConfiguration.h"
 
 class CPU_Bayer : public sc_module, public TransmissionInterface {
 private:
+    GlobalConfiguration &global = GlobalConfiguration::getInstance();
+
     static const int xSize = 5;
     static const int ySize = 5;
     static const int borderSize = 1;

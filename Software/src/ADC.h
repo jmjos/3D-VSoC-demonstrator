@@ -16,7 +16,7 @@ private:
     GlobalConfiguration &global = GlobalConfiguration::getInstance();
 
     address_t addr;
-
+    image_t* image;
     sc_event sendEv;
 
 public:

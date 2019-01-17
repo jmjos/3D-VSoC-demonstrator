@@ -21,13 +21,14 @@ public:
     int imageWidth = 9;
     int imageHeigth = 9;
 
-    bool VERBOSE_RECEIVE = false;
-    bool VERBOSE_SEND = false;
+    bool VERBOSE_RECEIVE = true;
+    bool VERBOSE_SEND = true;
     bool VERBOSE_RECEIVE_SENSOR = true;
     bool VERBOSE_SEND_SENSOR = true;
     bool VERBOSE_RECEIVE_ADC = false;
     bool VERBOSE_SEND_ADC = true;
-
+    bool VERBOSE_RECEIVE_BAYER = true;
+    bool VERBOSE_SEND_BAYER = true;
 private:
     GlobalConfiguration() {}
 

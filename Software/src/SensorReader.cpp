@@ -10,7 +10,6 @@ SensorReader::SensorReader(const sc_module_name &nm) {
 
 void SensorReader::process() {
     for (auto i=0;i<INT_MAX; i++){
-
         std::string file = "pikes-peak.nef";
         iProcessor.open_file(file.c_str());
         iProcessor.unpack();
