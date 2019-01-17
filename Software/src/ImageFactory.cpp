@@ -11,8 +11,11 @@ ImageFactory& ImageFactory::getInstance()
     return instance;
 }
 
-image_t* ImageFactory::createImage()
+image_t* ImageFactory::createImage() // TODO get file location
 {
+    // TODO read image from given file
+    // generate a image_t and copy image data into this data structre
+    // use new to have pionter on heap, not stack!-
     auto image = new image_t ({1,2});
     images.push_back(image);
     return image;

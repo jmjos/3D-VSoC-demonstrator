@@ -15,3 +15,6 @@
 |-----|-------------|
 | 0-8 | ADC ul to dr|
 | 9-17| BAyer CPU ul to dr|
+
+### Control
+The first four fields of the control field refer to the window of the image, which is processed: field 0: xStart, 1: yStart, 2: xEnd, 3: yEnd

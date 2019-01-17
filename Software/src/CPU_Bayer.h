@@ -50,7 +50,7 @@ public:
     SC_HAS_PROCESS(CPU_Bayer);
     CPU_Bayer(const sc_module_name &nm, address_t addr);
 
-    virtual void transmitImage(address_t src, address_t dst, std::vector<control_t> control, image_t *data);
+    virtual void transmitImage(address_t src, address_t dst, control_t control, image_t *data);
 };
 
 

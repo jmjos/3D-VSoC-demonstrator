@@ -15,17 +15,18 @@ void SensorReader::process() {
         for (address_t dst = 0; dst <=8; dst++){
             address_t src = 999;
 
-
-            auto image = imageFactory.createImage();
+            auto image = imageFactory.createImage(); //TODO implement correct image reader
             cout << image->at(0) << endl;
-            // control: first field: position. second field: length of data
-            std::vector<control_t> control = {1, 2};
+            // control data structure containing the start and end adresses within the image
+            // TODO get correct image-positions.
+            int xStart = 0;
+            int yStart = 1;
+            int xEnd = 1;
+            int yEnd = 2;
+            control_t control = {xStart, yStart, xEnd, yEnd};
 
             imagePort[dst]->transmitImage(src, dst, control, image);
-            //imagePort->transmitImage(src, dst,)
         }
-
         wait(1/(float) global.framerate, SC_SEC);
-
     }
 }
