@@ -4,6 +4,7 @@
 
 #include "ImageFactory.h"
 
+using namespace std;
 
 ImageFactory& ImageFactory::getInstance()
 {
@@ -11,12 +12,19 @@ ImageFactory& ImageFactory::getInstance()
     return instance;
 }
 
-image_t* ImageFactory::createImage() // TODO get file location
+image_t* ImageFactory::createImage(std::string file)
 {
-    // TODO read image from given file
-    // generate a image_t and copy image data into this data structre
-    // use new to have pionter on heap, not stack!-
-    auto image = new image_t ({1,2});
+    iProcessor.open_file(file.c_str());
+    iProcessor.unpack();
+    iProcessor.raw2image();
+    auto image = new image_t();
+    for(int i = 0; i < 9; i++) {//TODO iProcessor.imgdata.sizes.iwidth
+        for (int j = 0; j < 9; j++) {//TODO iProcessor.imgdata.sizes.iheight
+            image->push_back(iProcessor.imgdata.image[i][j]);
+            //cout << "Value " << i << "," << j << ": " << iProcessor.imgdata.image[i][j] << endl;
+        }
+    }
+    iProcessor.recycle();
     images.push_back(image);
     return image;
 }

@@ -15,7 +15,7 @@ void SensorReader::process() {
         for (address_t dst = 0; dst <=8; dst++){
             address_t src = 999;
 
-            auto image = imageFactory.createImage(); //TODO implement correct image reader
+            auto image = imageFactory.createImage("pikes-peak.nef"); //TODO implement correct image reader
             // control data structure containing the start and end adresses within the image
             // TODO get correct image-positions.
             int xStart = 0;
