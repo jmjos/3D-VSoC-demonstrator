@@ -5,7 +5,8 @@ language: cpp
 compiler: gcc
 
 before_install:
-        - sudo apt install libraw-dev
+        - sudo apt update
+          sudo apt -y install libraw-dev
 
 before_script:
         - mkdir systemc
