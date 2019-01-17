@@ -5,25 +5,15 @@
 #ifndef SIM_IMAGEFACTORY_H
 #define SIM_IMAGEFACTORY_H
 
-#include <fstream>
-#include <iostream>
-
-#include "libraw/libraw.h"
-
 #include "GlobalConfiguration.h"
 #include "TransmissionInterface.h"
-
-
 
 class ImageFactory {
 public:
     std::vector<image_t*> images;
     static ImageFactory& getInstance();
-    image_t* createImage(std::string);
+    image_t* createImage(image_t*);
     void deleteImage(image_t *image);
-
-private:
-    LibRaw iProcessor;
 };
 
 

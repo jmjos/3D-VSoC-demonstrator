@@ -6,6 +6,10 @@
 #define SIM_SENSORREADER_H
 
 #include <systemc.h>
+#include <fstream>
+#include <iostream>
+
+#include "libraw/libraw.h"
 
 #include "TransmissionInterface.h"
 #include "GlobalConfiguration.h"
@@ -16,8 +20,7 @@ private:
     int currentFrame = 0;
     GlobalConfiguration &global = GlobalConfiguration::getInstance();
     ImageFactory &imageFactory = ImageFactory::getInstance();
-
-
+    LibRaw iProcessor;
 public:
     sc_port<TransmissionInterface, 9> imagePort[9];
 

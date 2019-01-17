@@ -12,19 +12,8 @@ ImageFactory& ImageFactory::getInstance()
     return instance;
 }
 
-image_t* ImageFactory::createImage(std::string file)
+image_t* ImageFactory::createImage(image_t* image)
 {
-    iProcessor.open_file(file.c_str());
-    iProcessor.unpack();
-    iProcessor.raw2image();
-    auto image = new image_t();
-    for(int i = 0; i < 9; i++) {//TODO iProcessor.imgdata.sizes.iwidth
-        for (int j = 0; j < 9; j++) {//TODO iProcessor.imgdata.sizes.iheight
-            image->push_back(iProcessor.imgdata.image[i][j]);
-            //cout << "Value " << i << "," << j << ": " << iProcessor.imgdata.image[i][j] << endl;
-        }
-    }
-    iProcessor.recycle();
     images.push_back(image);
     return image;
 }
