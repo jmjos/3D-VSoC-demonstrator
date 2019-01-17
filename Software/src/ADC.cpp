@@ -31,7 +31,7 @@ void ADC::process() {
 
 void ADC::transmitImage(address_t src, address_t dst, control_t control, image_t *data){
     assert(addr==dst);
-    cout << "ADC " << addr << " recieved data to " << dst << " at " << sc_time_stamp() << endl;
-    cout << "ADC can read image data: " << data->at(0) << endl;
+    if (global.VERBOSE_RECEIVE || global.VERBOSE_RECEIVE_ADC)
+        cout << "ADC " << addr << " recieved data to " << dst << " at " << sc_time_stamp() << endl;
     sendEv.notify(SC_ZERO_TIME);
 };

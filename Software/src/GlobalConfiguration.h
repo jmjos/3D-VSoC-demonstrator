@@ -15,11 +15,18 @@ public:
         return instance;
     }
 
-    address_t SensorReaderAddr = 999;
+    address_t sensorReaderAddr = 999;
     const int framerate = 3;
     std::string file;
     int imageWidth = 9;
     int imageHeigth = 9;
+
+    bool VERBOSE_RECEIVE = false;
+    bool VERBOSE_SEND = false;
+    bool VERBOSE_RECEIVE_SENSOR = true;
+    bool VERBOSE_SEND_SENSOR = true;
+    bool VERBOSE_RECEIVE_ADC = false;
+    bool VERBOSE_SEND_ADC = true;
 
 private:
     GlobalConfiguration() {}

@@ -24,19 +24,17 @@ void SensorReader::process() {
         iProcessor.recycle();
         imageFactory.createImage(image);
 
-
-        cout << "SensorReader sends data at " << sc_time_stamp() << endl;
+        if (global.VERBOSE_SEND || global.VERBOSE_SEND_SENSOR)
+            cout << "SensorReader sends data at " << sc_time_stamp() << endl;
         for (address_t dst = 0; dst <=8; dst++){
-            address_t src = 999;
-
-            // control data structure containing the start and end adresses within the image
-            // TODO get correct image-positions.
-            int xStart = 0;
-            int yStart = 1;
-            int xEnd = 1;
-            int yEnd = 2;
+            address_t src = global.sensorReaderAddr;
+            int ADCwidth = global.imageWidth/3;
+            int ADCheigth = global.imageHeigth/3;
+            int xStart = (dst%3) * ADCwidth;
+            int xEnd = xStart + ADCwidth;
+            int yStart = (dst/3) * ADCheigth;
+            int yEnd = yStart + ADCheigth;
             control_t control = {xStart, yStart, xEnd, yEnd};
-
             imagePort[dst]->transmitImage(src, dst, control, image);
         }
         wait(1/(float) global.framerate, SC_SEC);
