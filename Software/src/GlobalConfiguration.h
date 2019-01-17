@@ -18,6 +18,8 @@ public:
     address_t SensorReaderAddr = 999;
     const int framerate = 3;
     std::string file;
+    int imageWidth = 9;
+    int imageHeigth = 9;
 
 private:
     GlobalConfiguration() {}

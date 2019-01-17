@@ -16,7 +16,6 @@ void SensorReader::process() {
             address_t src = 999;
 
             auto image = imageFactory.createImage(); //TODO implement correct image reader
-            cout << image->at(0) << endl;
             // control data structure containing the start and end adresses within the image
             // TODO get correct image-positions.
             int xStart = 0;

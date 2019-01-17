@@ -15,20 +15,17 @@ void ADC::process() {
         wait(sendEv);
         cout << "ADC can now send." << endl;
 
-        //send middle data to counterpart
-        image_t image = {2, 2};
+        // TODO for loop iterating all regions and sending them to the correct destination. no processing required, these are still the bayer coded images.
 
-        // control data structure containing the start and end adresses within the image
-        int xStart = 0;
-        int yStart = 1;
-        int xEnd = 1;
-        int yEnd = 2;
+        int ADCwidth = global.imageWidth/3;
+        int ADCheigth = global.imageHeigth/3;
+        int xStart = (addr%3) * ADCwidth;
+        int xEnd = xStart + ADCwidth;
+        int yStart = (addr/3) * ADCheigth;
+        int yEnd = yStart + ADCheigth;
         control_t control = {xStart, yStart, xEnd, yEnd};
 
-        imagePort->transmitImage(addr, addr+9, control, &image);
-        //send edge data
-
-
+        //imagePort->transmitImage(addr, addr+9, control, &image);
     }
 }
 
