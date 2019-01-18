@@ -12,11 +12,21 @@ void SensorReader::process() {
     for (auto i=0;i<INT_MAX; i++){
         std::string file = "pikes-peak.nef";
         iProcessor.open_file(file.c_str());
+
+        /*//TODO error handling
+        if ((iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS)
+        {
+            fprintf(stderr, "Cannot open %s: %s\n", av[i], libraw_strerror(iProcessor.open_file(file.c_str()));
+            continue; // no recycle b/c open file will recycle itself
+        }
+         */
+
         iProcessor.unpack();
         iProcessor.raw2image();
         auto image = new image_t();
         for(int i = 0; i < global.imageWidth; i++) {//TODO iProcessor.imgdata.sizes.iwidth
             for (int j = 0; j < global.imageHeigth; j++) {//TODO iProcessor.imgdata.sizes.iheight
+                //iProcessor.COLOR();
                 image->push_back(iProcessor.imgdata.image[i][j]);
             }
         }
