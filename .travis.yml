@@ -30,3 +30,8 @@ before_script:
         - cmake ..
 
 script: make
+
+after_success:
+        - wget https://s3.amazonaws.com/Sample_NEFs/pikes-peak.nef.zip
+        - unzip pikes-peak.net.zip
+        - ./sim
