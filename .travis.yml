@@ -20,9 +20,9 @@ before_script:
         - make -j
         - sudo mkdir /usr/local/systemc-2.3.3q
         - sudo make install
-        - sudo sed -i '/using std::gets;/d' /usr/local/systemc-2.3.3/include/systemc.h
-        - sudo sed -i '/using sc_dt::uint64;/d' /usr/local/systemc-2.3.3/include/systemc.h
-        - sudo sed -i '/using sc_dt::int64;/d' /usr/local/systemc-2.3.3/include/systemc.h
+        - sudo sed -i '/using std::gets;/d' /usr/local/systemc-2.3.3q/include/systemc.h
+        - sudo sed -i '/using sc_dt::uint64;/d' /usr/local/systemc-2.3.3q/include/systemc.h
+        - sudo sed -i '/using sc_dt::int64;/d' /usr/local/systemc-2.3.3q/include/systemc.h
         - cd ../..
         - cd Software
         - mkdir build
