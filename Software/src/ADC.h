@@ -5,8 +5,11 @@
 #ifndef SIM_ADC_H
 #define SIM_ADC_H
 
-#include <systemc>
+#include <systemc.h>
 #include <vector>
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include "TransmissionInterface.h"
 #include "GlobalConfiguration.h"
