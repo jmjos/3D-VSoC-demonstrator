@@ -33,5 +33,5 @@ script: make
 
 after_success:
         - wget https://s3.amazonaws.com/Sample_NEFs/pikes-peak.nef.zip
-        - unzip pikes-peak.net.zip
+        - unzip pikes-peak.nef.zip
         - ./sim
