@@ -29,6 +29,13 @@ void SensorReader::process() {
         iProcessor.recycle();
         imageFactory.createImage(imageData);
 
+        cv::Mat img;
+        img.create(iProcessor.imgdata.sizes.width, iProcessor.imgdata.sizes.height, CV_16UC3);
+        memcpy(img.data, iProcessor.imgdata.image,iProcessor.imgdata.sizes.width * iProcessor.imgdata.sizes.height );
+        //auto Img = cv::Mat(iProcessor.imgdata.sizes.width, iProcessor.imgdata.sizes.height, CV_16UC3, iProcessor.imgdata.image);
+        //cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
+        //cv::imshow( "Display window", img );                   // Show our image inside it.
+
         if (global.VERBOSE_SEND || global.VERBOSE_SEND_SENSOR)
             cout << "SensorReader sends data at " << sc_time_stamp() << endl;
         for (address_t dst = 0; dst <=8; dst++){

@@ -15,5 +15,5 @@ ADD_DEFINITIONS(-D SC_INCLUDE_DYNAMIC_PROCESSES)
 
 ADD_EXECUTABLE(${PROJECT_NAME} src/main.cpp src/TransmissionInterface.h src/ADC.cpp src/ADC.h src/Interconnect.cpp src/Interconnect.h src/SIMD.cpp src/SIMD.h src/CPU_Bayer.cpp src/CPU_Bayer.h src/CPU_2.cpp src/CPU_2.h src/Analog_ACC.cpp src/Analog_ACC.h src/VSoC.cpp src/VSoC.h src/SensorReader.cpp src/SensorReader.h src/GlobalConfiguration.cpp src/GlobalConfiguration.h src/ImageFactory.cpp src/ImageFactory.h src/ImageData.cpp src/ImageData.h)
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} systemc raw)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} systemc raw opencv_core opencv_highgui)
 
