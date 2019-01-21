@@ -11,7 +11,7 @@ CPU_Bayer::CPU_Bayer(const sc_module_name &nm, address_t addr) : sc_module(nm), 
     SC_THREAD(sendProcess)
 }
 
-void CPU_Bayer::transmitImage(address_t src, address_t dst, control_t control, image_t *data) {
+void CPU_Bayer::transmitImage(address_t src, address_t dst, control_t control, ImageData *data) {
     assert(addr == dst);
     if (global.VERBOSE_RECEIVE || global.VERBOSE_RECEIVE_BAYER)
     cout << " Bayer CPU " << addr << " recieved data at " << sc_time_stamp() << endl;

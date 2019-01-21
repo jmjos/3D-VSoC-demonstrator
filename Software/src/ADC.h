@@ -16,7 +16,7 @@ private:
     GlobalConfiguration &global = GlobalConfiguration::getInstance();
 
     address_t addr;
-    image_t* image;
+    ImageData* image;
     sc_event sendEv;
 
 public:
@@ -26,7 +26,7 @@ public:
     ADC(const sc_module_name &nm, address_t addr);
 
     void process();
-    virtual void transmitImage(address_t src, address_t dst, control_t control, image_t *data);
+    virtual void transmitImage(address_t src, address_t dst, control_t control, ImageData *data);
 };
 
 

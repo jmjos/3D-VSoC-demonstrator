@@ -12,13 +12,13 @@ ImageFactory& ImageFactory::getInstance()
     return instance;
 }
 
-image_t* ImageFactory::createImage(image_t* image)
+ImageData* ImageFactory::createImage(ImageData* image)
 {
     images.push_back(image);
     return image;
 }
 
-void ImageFactory::deleteImage(image_t *image)
+void ImageFactory::deleteImage(ImageData *image)
 {
     auto it = std::find(images.begin(), images.end(), image);
     delete(*it);

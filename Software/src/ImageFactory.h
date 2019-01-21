@@ -7,13 +7,14 @@
 
 #include "GlobalConfiguration.h"
 #include "TransmissionInterface.h"
+#include "ImageData.h"
 
 class ImageFactory {
 public:
-    std::vector<image_t*> images;
+    std::vector<ImageData*> images;
     static ImageFactory& getInstance();
-    image_t* createImage(image_t*);
-    void deleteImage(image_t *image);
+    ImageData* createImage(ImageData*);
+    void deleteImage(ImageData *image);
 };
 
 

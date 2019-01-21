@@ -22,6 +22,11 @@ void ADC::process() {
         //int yEnd = yStart + ADCheigth;
         address_t addr_x = addr%3;
         address_t addr_y = addr/3;
+        auto frameSize_x = {1, ADCwidth, 1};
+        auto frameSize_y = {1, ADCheigth, 1};
+        auto frameOffset_x = {ADCwidth - 1, 0, 0};
+        auto frameOffset_y = {ADCheigth - 1, 0, 0};
+
         for (address_t dst_x = addr_x - 1 ; dst_x <= addr_x + 1 ; dst_x++){
             for (address_t dst_y = addr_y - 1 ; dst_y <= addr_y + 1 ; dst_y++){
                 if (dst_x >= 0 && dst_y >= 0 && dst_x <= 3 && dst_y <= 3){
@@ -41,7 +46,7 @@ void ADC::process() {
     }
 }
 
-void ADC::transmitImage(address_t src, address_t dst, control_t control, image_t *data){
+void ADC::transmitImage(address_t src, address_t dst, control_t control, ImageData *data){
     assert(addr==dst);
     if (global.VERBOSE_RECEIVE || global.VERBOSE_RECEIVE_ADC)
         cout << "ADC " << addr << " recieved data to " << dst << " at " << sc_time_stamp() << endl;

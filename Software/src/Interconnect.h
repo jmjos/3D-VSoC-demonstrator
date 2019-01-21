@@ -16,7 +16,7 @@ public:
     SC_HAS_PROCESS(Interconnect);
     Interconnect(const sc_module_name &nm);
 
-    virtual void transmitImage(address_t  src, address_t dst, control_t control, image_t *data);
+    virtual void transmitImage(address_t  src, address_t dst, control_t control, ImageData *data);
 
 
 };
