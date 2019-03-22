@@ -1,2 +1,8 @@
 Software/.idea/
 Software/cmake-build-debug/
+
+Algorithm_OpenCV/.idea/
+Algorithm_OpenCV/cmake-build-debug/
+
+*/pikes-peak.nef
+*/test.tiff
