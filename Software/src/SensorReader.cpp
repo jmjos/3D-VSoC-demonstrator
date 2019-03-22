@@ -11,27 +11,30 @@ SensorReader::SensorReader(const sc_module_name &nm) {
 void SensorReader::process() {
     for (auto i=0;i<INT_MAX; i++){
         std::string file = "pikes-peak.nef";
-        iProcessor.open_file(file.c_str());
-
-        /*//TODO error handling
-        if ((iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS)
+        if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS)
         {
-            fprintf(stderr, "Cannot open %s: %s\n", av[i], libraw_strerror(iProcessor.open_file(file.c_str()));
-            continue; // no recycle b/c open file will recycle itself
+            fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
         }
-         */
-
         iProcessor.unpack();
         iProcessor.raw2image();
-        auto image = new image_t();
+        auto imageData = new ImageData();
         for(int i = 0; i < global.imageWidth; i++) {//TODO iProcessor.imgdata.sizes.iwidth
             for (int j = 0; j < global.imageHeigth; j++) {//TODO iProcessor.imgdata.sizes.iheight
-                //iProcessor.COLOR();
-                image->push_back(iProcessor.imgdata.image[i][j]);
+                imageData->image->push_back(iProcessor.imgdata.image[i][j]);
             }
         }
+        for (int i = 0 ; i < global.imageWidth * global.imageHeigth ; i++){
+            imageData->imageRaw->push_back(iProcessor.imgdata.rawdata.raw_image[i]);
+        }
         iProcessor.recycle();
-        imageFactory.createImage(image);
+        imageFactory.createImage(imageData);
+
+        cv::Mat img;
+        img.create(iProcessor.imgdata.sizes.width, iProcessor.imgdata.sizes.height, CV_16UC3);
+        memcpy(img.data, iProcessor.imgdata.image,iProcessor.imgdata.sizes.width * iProcessor.imgdata.sizes.height );
+        //auto Img = cv::Mat(iProcessor.imgdata.sizes.width, iProcessor.imgdata.sizes.height, CV_16UC3, iProcessor.imgdata.image);
+        //cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
+        //cv::imshow( "Display window", img );                   // Show our image inside it.
 
         if (global.VERBOSE_SEND || global.VERBOSE_SEND_SENSOR)
             cout << "SensorReader sends data at " << sc_time_stamp() << endl;
@@ -44,7 +47,7 @@ void SensorReader::process() {
             int yStart = (dst/3) * ADCheigth;
             int yEnd = yStart + ADCheigth;
             control_t control = {xStart, yStart, xEnd, yEnd};
-            imagePort[dst]->transmitImage(src, dst, control, image);
+            imagePort[dst]->transmitImage(src, dst, control, imageData);
         }
         wait(1/(float) global.framerate, SC_SEC);
     }

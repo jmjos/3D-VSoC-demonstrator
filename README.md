@@ -18,3 +18,10 @@
 
 ### Control
 The first four fields of the control field refer to the window of the image, which is processed: field 0: xStart, 1: yStart, 2: xEnd, 3: yEnd
+
+### Build
+use cmake.
+
+Dependencies on Ubunutu 18.04LTS: libraw-dev and libopencv-dev
+
+Warning: Incopatabiliy with systemc. Therefore, patch systemc.h by commeting using sc_dt::unit64; and using sc_dt::int64;

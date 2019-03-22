@@ -7,6 +7,7 @@ compiler: gcc
 before_install:
         - sudo apt update
         - sudo apt -y install libraw-dev
+        - sudo apt -y install libopencv-dev
 
 before_script:
         - mkdir systemc
@@ -15,11 +16,13 @@ before_script:
         - cd systemc-2.3.1a
         - mkdir objdir
         - cd objdir
-        - ../configure --prefix=/usr/local/systemc-2.3.3
+        - ../configure --prefix=/usr/local/systemc-2.3.3q
         - make -j
-        - sudo mkdir /usr/local/systemc-2.3.3
+        - sudo mkdir /usr/local/systemc-2.3.3q
         - sudo make install
-        - sudo sed -i '/using std::gets;/d' /usr/local/systemc-2.3.3/include/systemc.h
+        - sudo sed -i '/using std::gets;/d' /usr/local/systemc-2.3.3q/include/systemc.h
+        - sudo sed -i '/using sc_dt::uint64;/d' /usr/local/systemc-2.3.3q/include/systemc.h
+        - sudo sed -i '/using sc_dt::int64;/d' /usr/local/systemc-2.3.3q/include/systemc.h
         - cd ../..
         - cd Software
         - mkdir build
@@ -27,3 +30,8 @@ before_script:
         - cmake ..
 
 script: make
+
+after_success:
+        - wget https://s3.amazonaws.com/Sample_NEFs/pikes-peak.nef.zip
+        - unzip pikes-peak.nef.zip
+        - ./sim

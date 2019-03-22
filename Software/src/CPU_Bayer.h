@@ -16,7 +16,7 @@ private:
     static const int ySize = 5;
     static const int borderSize = 1;
 
-    std::vector<image_t> imageData;
+    std::vector<ImageData *> imageData;
     std::vector<bool> validData;
 
     address_t addr = 0;
@@ -53,7 +53,7 @@ public:
     SC_HAS_PROCESS(CPU_Bayer);
     CPU_Bayer(const sc_module_name &nm, address_t addr);
 
-    virtual void transmitImage(address_t src, address_t dst, control_t control, image_t *data);
+    virtual void transmitImage(address_t src, address_t dst, control_t control, ImageData *data);
 };
 
 

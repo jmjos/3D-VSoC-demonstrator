@@ -5,8 +5,11 @@
 #ifndef SIM_ADC_H
 #define SIM_ADC_H
 
-#include <systemc>
+#include <systemc.h>
 #include <vector>
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include "TransmissionInterface.h"
 #include "GlobalConfiguration.h"
@@ -16,7 +19,7 @@ private:
     GlobalConfiguration &global = GlobalConfiguration::getInstance();
 
     address_t addr;
-    image_t* image;
+    ImageData* image;
     sc_event sendEv;
 
 public:
@@ -26,7 +29,7 @@ public:
     ADC(const sc_module_name &nm, address_t addr);
 
     void process();
-    virtual void transmitImage(address_t src, address_t dst, control_t control, image_t *data);
+    virtual void transmitImage(address_t src, address_t dst, control_t control, ImageData *data);
 };
 
 
