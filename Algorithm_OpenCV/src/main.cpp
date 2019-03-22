@@ -1,17 +1,31 @@
 #include <fstream>
 #include <iostream>
+#include <stdio.h>
 
 #include "libraw/libraw.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/features2d.hpp>
+#include <opencv2/objdetect.hpp>
 
 using namespace std;
+using namespace cv;
+
+/*
+class CascadeDetector {
+public:
+
+private:
+};
+*/
 
 int main(int arg_num, char *arg_vec[]) {
 
     LibRaw iProcessor;
 
-    std::string file = "pikes-peak.nef";
+    std::string file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/pikes-peak.nef";
     if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
         fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
     }
@@ -31,6 +45,11 @@ int main(int arg_num, char *arg_vec[]) {
         }
     }
 
+    /*function for facetracking
+    cv::FeatureDetector::detect();
+    //Tracker function
+    createFaceDetectionMaskGenerator();
+    */
 
     cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
     cv::imshow("Display window", img);
@@ -40,59 +59,3 @@ int main(int arg_num, char *arg_vec[]) {
 
     return 0;
 }
-
-//Weitere Ideen
-/*
- *  //Variante 2
-    auto
-        img1 = cv::Mat(H, B, CV_16UC3);
-    for (int i = 0; i < H; i++) {
-        for (int j = 0; j < B; j++) {
-            int linindex = (j * H + i);
-            cv::Vec4s quadrupel = cv::Vec4s(iProcessor.imgdata.image[linindex][0], (iProcessor.imgdata.image[linindex][1]), iProcessor.imgdata.image[linindex][2], iProcessor.imgdata.image[linindex][3]);
-            cv::Vec3s tripel;
-            if (remainder(i, 2))//ungerade Zeile
-                if (remainder(j, 2))//ungerade Spalte
-                    tripel=cv::Vec3s(quadrupel[2], quadrupel[1], quadrupel[0]);
-                else//gerade Spalte
-                    tripel=cv::Vec3s(quadrupel[2], (quadrupel[1]+quadrupel[3])/2, quadrupel[0]);
-            else//gerade Zeile
-                tripel=cv::Vec3s(quadrupel[2], quadrupel[1], quadrupel[0]);
-            img1.at<cv::Vec3s>(H-i-1,j) = tripel;
-        }
-    }
- */
-
-/*
- * 2. grün ignorierend und mit Gamma-Verzerrung
-
-     auto
-         img1 = cv::Mat(H, B, CV_16UC3);
-     for (int i = 0; i < H; i++) {
-         for (int j = 0; j < B; j++) {
-             int linindex = (j * H + i);
-             cv::Vec4i quadrupel =
-cv::Vec4i(iProcessor.imgdata.image[linindex][0],
-(iProcessor.imgdata.image[linindex][1]),
-(ushort)iProcessor.imgdata.image[linindex][2],
-iProcessor.imgdata.image[linindex][3]);
-             cv::Vec3i tripel;
-             //if (remainder(i, 2))//ungerade Zeile
-             //    if (remainder(j, 2))//ungerade Spalte
-             //        tripel=cv::Vec3i(quadrupel[2], quadrupel[1],
-quadrupel[0]);
-             //    else//gerade Spalte
-             //        tripel=cv::Vec3i(quadrupel[2],
-(quadrupel[1]+quadrupel[3])/2, quadrupel[0]);
-             //else//gerade Zeile
-                 tripel=cv::Vec3i(quadrupel[2], quadrupel[1], quadrupel[0]);
-             for (int c = 0; c < 3; c++){//Gamma-Expansion
-                 double test = (double)(tripel[c]);
-                 tripel[c] = sqrt((double)(tripel[c]))*sqrt(0xFFFF);
-             }
-             //img1.at<cv::Vec3s>(H-i-1,j) = tripel;
-             img1.at<cv::Vec3s>(H - i - 1, j) = tripel;
-             //img1[H - i - 1][j] = tripel;
-         }
-     }
- */
