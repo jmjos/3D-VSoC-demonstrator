@@ -14,16 +14,34 @@
 using namespace std;
 using namespace cv;
 
-/*
-class CascadeDetector {
+const string WindowName = "Face Detection example";
+
+class CascadeDetectorAdapter: public DetectionBasedTracker::IDetector
+{
 public:
+    CascadeDetectorAdapter(cv::Ptr<cv::CascadeClassifier> detector):
+            IDetector(),
+            Detector(detector)
+    {
+        CV_Assert(detector);
+    }
+
+    void detect(const cv::Mat &Image, std::vector<cv::Rect> &objects) CV_OVERRIDE
+    {
+        Detector->detectMultiScale(Image, objects, scaleFactor, minNeighbours, 0, minObjSize, maxObjSize);
+    }
+
+    virtual ~CascadeDetectorAdapter() CV_OVERRIDE
+    {}
 
 private:
+    CascadeDetectorAdapter();
+    cv::Ptr<cv::CascadeClassifier> Detector;
 };
-*/
 
 int main(int arg_num, char *arg_vec[]) {
 
+    /* example -> open and show image:
     LibRaw iProcessor;
     //string file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/pikes-peak.nef";
     std::string file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/portrait.nef";
@@ -45,17 +63,83 @@ int main(int arg_num, char *arg_vec[]) {
             img.at<cv::Vec3s>(i, j) = tripel;
         }
     }
-    /*function for facetracking
-    cv::FeatureDetector::detect();
+    //function for facetracking
+    //cv::FeatureDetector::detect();
     //Tracker function
-    createFaceDetectionMaskGenerator();
-    */
+    //createFaceDetectionMaskGenerator();
 
     cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
     cv::imshow("Display window", img);
     cv::waitKey(0);
 
     iProcessor.recycle();
+    */
 
+    LibRaw iProcessor;
+
+    namedWindow(WindowName);
+
+    std::string file = "/home/mtzschoppe/Desktop/algorithm_opencv/portrait.nef";
+    iProcessor.open_file(file.c_str());
+    iProcessor.unpack();
+    iProcessor.dcraw_process();
+
+    int ret = 0;
+    libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
+
+    auto img = cv::Mat(image->height, image->width, CV_16UC3);
+
+    //std::string cascadeFrontalfilename = "/home/mtzschoppe/Desktop/algorithm_opencv/portrait.nef";
+    cv::Ptr<cv::CascadeClassifier> cascade = makePtr<cv::CascadeClassifier>(img);
+    cv::Ptr<DetectionBasedTracker::IDetector> MainDetector = makePtr<CascadeDetectorAdapter>(cascade);
+    /*
+    if ( cascade->empty() )
+    {
+        printf("Error: Cannot load %s\n", cascadeFrontalfilename.c_str());
+        return 2;
+    }
+    */
+
+    cascade = makePtr<cv::CascadeClassifier>(img);
+    cv::Ptr<DetectionBasedTracker::IDetector> TrackingDetector = makePtr<CascadeDetectorAdapter>(cascade);
+    /*
+    if ( cascade->empty() )
+    {
+        printf("Error: Cannot load %s\n", cascadeFrontalfilename.c_str());
+        return 2;
+    }
+    */
+
+    DetectionBasedTracker::Parameters params;
+    DetectionBasedTracker Detector(MainDetector, TrackingDetector, params);
+
+    if (!Detector.run())
+    {
+        printf("Error: Detector initialization failed\n");
+        return 2;
+    }
+
+    //Mat ReferenceFrame;
+    Mat GrayFrame;
+    vector<Rect> Faces;
+
+    do
+    {
+        //image >> ReferenceFrame;
+        cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
+        Detector.process(GrayFrame);
+        Detector.getObjects(Faces);
+
+        for (size_t i = 0; i < Faces.size(); i++)
+        {
+            rectangle(img, Faces[i], Scalar(0,255,0));
+        }
+
+        imshow(WindowName, img);
+    } while (waitKey(30) < 0);
+
+    Detector.stop();
+    iProcessor.recycle();
+    
     return 0;
 }
