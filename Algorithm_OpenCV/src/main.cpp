@@ -3,10 +3,11 @@
 #include <stdio.h>
 
 #include "libraw/libraw.h"
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
-#include <opencv2/imgproc.hpp>
+#include <opencv2/imgproc.hpp>  // Gaussian Blur
+#include <opencv2/core/core.hpp> // Basic OpenCV structures (cv::Mat, Scalar)
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui/highgui.hpp>  // OpenCV window I/O
 #include <opencv2/features2d.hpp>
 #include <opencv2/objdetect.hpp>
 
@@ -24,8 +25,8 @@ private:
 int main(int arg_num, char *arg_vec[]) {
 
     LibRaw iProcessor;
-
-    std::string file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/pikes-peak.nef";
+    //string file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/pikes-peak.nef";
+    std::string file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/portrait.nef";
     if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
         fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
     }
@@ -44,7 +45,6 @@ int main(int arg_num, char *arg_vec[]) {
             img.at<cv::Vec3s>(i, j) = tripel;
         }
     }
-
     /*function for facetracking
     cv::FeatureDetector::detect();
     //Tracker function
