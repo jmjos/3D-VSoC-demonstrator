@@ -10,6 +10,7 @@
 #include <opencv2/highgui/highgui.hpp>  // OpenCV window I/O
 #include <opencv2/features2d.hpp>
 #include <opencv2/objdetect.hpp>
+#include <opencv2/core/mat.hpp>
 
 using namespace std;
 using namespace cv;
@@ -40,6 +41,81 @@ private:
 };
 
 int main(int arg_num, char *arg_vec[]) {
+
+    LibRaw iProcessor;
+
+    namedWindow(WindowName);
+
+    std::string file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/portrait.nef";
+    iProcessor.open_file(file.c_str());
+    iProcessor.unpack();
+    iProcessor.dcraw_process();
+
+    int ret = 0;
+    libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
+
+    auto img = cv::Mat(image->height, image->width, CV_16UC3); //CV_16UC3
+
+    for (int i = 0; i < image->height; i++) {
+        for (int j = 0; j < image->width; j++) {
+            int linindex = (i * image->width + j)*3;
+            cv::Vec3s tripel = cv::Vec3s((short)image->data[linindex+2]*256, (short)image->data[linindex +1]*256, (short)image->data[linindex ]*256);
+            img.at<cv::Vec3s>(i, j) = tripel;
+        }
+    }
+
+    img.convertTo(img, CV_8UC1, 1/256.0);
+
+    std::string cascadeFrontalfilename = samples::findFile("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
+
+    cv::Ptr<cv::CascadeClassifier> cascade = makePtr<cv::CascadeClassifier>(cascadeFrontalfilename);
+    cv::Ptr<DetectionBasedTracker::IDetector> MainDetector = makePtr<CascadeDetectorAdapter>(cascade);
+
+    if ( cascade->empty() )
+    {
+        printf("Error: Cannot load %s\n", cascadeFrontalfilename.c_str());
+        return 2;
+    }
+
+    cascade = makePtr<cv::CascadeClassifier>(cascadeFrontalfilename);
+    cv::Ptr<DetectionBasedTracker::IDetector> TrackingDetector = makePtr<CascadeDetectorAdapter>(cascade);
+
+    if ( cascade->empty() )
+    {
+        printf("Error: Cannot load %s\n", cascadeFrontalfilename.c_str());
+        return 2;
+    }
+
+    DetectionBasedTracker::Parameters params;
+    DetectionBasedTracker Detector(MainDetector, TrackingDetector, params);
+
+    if (!Detector.run())
+    {
+        printf("Error: Detector initialization failed\n");
+        return 2;
+    }
+
+    //Mat ReferenceFrame;
+    Mat GrayFrame;
+    vector<Rect> Faces;
+
+    do
+    {
+        //image >> ReferenceFrame;
+        cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
+        Detector.process(GrayFrame);
+        Detector.getObjects(Faces);
+
+        for (size_t i = 0; i < Faces.size(); i++)
+        {
+            rectangle(img, Faces[i], Scalar(0,255,0));
+        }
+
+        imshow(WindowName, img);
+    } while (waitKey(30) < 0);
+
+    Detector.stop();
+    iProcessor.recycle();
 
     /* example -> open and show image:
     LibRaw iProcessor;
@@ -74,87 +150,6 @@ int main(int arg_num, char *arg_vec[]) {
 
     iProcessor.recycle();
     */
-
-    LibRaw iProcessor;
-
-    namedWindow(WindowName);
-
-    std::string file = "/home/mtzschoppe/Desktop/algorithm_opencv/portrait.nef";
-    iProcessor.open_file(file.c_str());
-    iProcessor.unpack();
-    iProcessor.dcraw_process();
-
-    int ret = 0;
-    libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
-
-    auto img = cv::Mat(image->height, image->width, CV_16UC3); //CV_16UC3
-
-    for (int i = 0; i < image->height; i++) {
-        for (int j = 0; j < image->width; j++) {
-            int linindex = (i * image->width + j)*3;
-            cv::Vec3s tripel = cv::Vec3s((short)image->data[linindex+2]*256, (short)image->data[linindex +1]*256, (short)image->data[linindex ]*256);
-            img.at<cv::Vec3s>(i, j) = tripel;
-        }
-    }
-
-    std::string cascadeFrontalfilename = samples::findFile("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
-
-    cv::Ptr<cv::CascadeClassifier> cascade = makePtr<cv::CascadeClassifier>(cascadeFrontalfilename);
-    cv::Ptr<DetectionBasedTracker::IDetector> MainDetector = makePtr<CascadeDetectorAdapter>(cascade);
-
-    //cv::Ptr<cv::CascadeClassifier> cascade = makePtr<cv::CascadeClassifier>(img);
-    //cv::Ptr<DetectionBasedTracker::IDetector> MainDetector = makePtr<CascadeDetectorAdapter>(cascade);
-    /*
-    if ( cascade->empty() )
-    {
-        printf("Error: Cannot load %s\n", cascadeFrontalfilename.c_str());
-        return 2;
-    }
-    */
-
-    cascade = makePtr<cv::CascadeClassifier>(cascadeFrontalfilename);
-    cv::Ptr<DetectionBasedTracker::IDetector> TrackingDetector = makePtr<CascadeDetectorAdapter>(cascade);
-
-    //cascade = makePtr<cv::CascadeClassifier>(img);
-    //cv::Ptr<DetectionBasedTracker::IDetector> TrackingDetector = makePtr<CascadeDetectorAdapter>(cascade);
-    /*
-    if ( cascade->empty() )
-    {
-        printf("Error: Cannot load %s\n", cascadeFrontalfilename.c_str());
-        return 2;
-    }
-    */
-
-    DetectionBasedTracker::Parameters params;
-    DetectionBasedTracker Detector(MainDetector, TrackingDetector, params);
-
-    if (!Detector.run())
-    {
-        printf("Error: Detector initialization failed\n");
-        return 2;
-    }
-
-    //Mat ReferenceFrame;
-    Mat GrayFrame;
-    vector<Rect> Faces;
-
-    do
-    {
-        //image >> ReferenceFrame;
-        cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
-        Detector.process(GrayFrame);
-        Detector.getObjects(Faces);
-
-        for (size_t i = 0; i < Faces.size(); i++)
-        {
-            rectangle(img, Faces[i], Scalar(0,255,0));
-        }
-
-        imshow(WindowName, img);
-    } while (waitKey(30) < 0);
-
-    Detector.stop();
-    iProcessor.recycle();
 
     return 0;
 }
