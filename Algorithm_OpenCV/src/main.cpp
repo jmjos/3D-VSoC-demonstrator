@@ -46,7 +46,57 @@ int main(int arg_num, char *arg_vec[]) {
 
     namedWindow(WindowName);
 
-    std::string file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/portrait.nef";
+    /*
+    cv::VideoCapture::VideoCapture(const string & filename = , int apiPreference = cv::CAP_IMAGES);
+    cv::VideoCaptureAPIs (cv::CAP_IMAGES);
+
+    CAP_IMAGES cv::VideoCaptureAPIs;
+    */
+
+    cv::CommandLineParser parser(argc, argv, "{@image| ../home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages/left%02d.dng |}");
+    string first_file = parser.get<string>("@image");
+
+    if(first_file.empty())
+    {
+        return 1;
+    }
+
+    VideoCapture sequence(first_file);
+
+    if (!sequence.isOpened())
+    {
+        cerr << "Failed to open the image sequence!\n" << endl;
+        return 1;
+    }
+
+    Mat image_sec;
+
+    for(;;)
+    {
+        // Read in image from sequence
+        sequence >> image_sec;
+
+        iProcessor.open_file(first_file.c_str());
+        iProcessor.unpack();
+        iProcessor.dcraw_process();
+
+        // If no image was retrieved -> end of sequence
+        if(image_sec.empty())
+        {
+            cout << "End of Sequence" << endl;
+            break;
+        }
+
+        //imshow("Image sequence | press ESC to close", image_sec);
+
+        //if(waitKey(500) == 27)
+        //    break;
+    }
+
+
+
+
+    std::string file = "/home/mtzschoppe/Desktop/portrait2.dng";
     iProcessor.open_file(file.c_str());
     iProcessor.unpack();
     iProcessor.dcraw_process();

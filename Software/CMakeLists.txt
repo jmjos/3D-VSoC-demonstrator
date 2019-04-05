@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(sim)
 
-SET(CMAKE_PREFIX_PATH /usr/local/systemc-2.3.3q)
+SET(CMAKE_PREFIX_PATH /usr/local/systemc-2.3.3)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++14 -O3")
 
@@ -17,3 +17,5 @@ ADD_EXECUTABLE(${PROJECT_NAME} src/main.cpp src/TransmissionInterface.h src/ADC.
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} systemc raw opencv_core opencv_highgui)
 
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )

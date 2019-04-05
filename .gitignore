@@ -4,6 +4,7 @@ Software/cmake-build-debug/
 Algorithm_OpenCV/.idea/
 Algorithm_OpenCV/cmake-build-debug/
 Algorithm_OpenCV/opencv/
+Algorithm_OpenCV/RAWImages/
 
 */pikes-peak.nef
 */test.tiff
