@@ -15,6 +15,20 @@
 using namespace std;
 using namespace cv;
 
+const string path_key[12] =
+        {"/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_01.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_02.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_03.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_04.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_05.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_06.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_07.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_08.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_09.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_10.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_11.dng",
+         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_12.dng"};
+
 const string WindowName = "Face Detection example";
 
 class CascadeDetectorAdapter: public DetectionBasedTracker::IDetector
@@ -44,77 +58,10 @@ int main(int arg_num, char *arg_vec[]) {
 
     LibRaw iProcessor;
 
-    namedWindow(WindowName);
+    namedWindow(WindowName, cv::WINDOW_NORMAL);
 
-    /*
-    cv::VideoCapture::VideoCapture(const string & filename = , int apiPreference = cv::CAP_IMAGES);
-    cv::VideoCaptureAPIs (cv::CAP_IMAGES);
-
-    CAP_IMAGES cv::VideoCaptureAPIs;
-    */
-
-    cv::CommandLineParser parser(argc, argv, "{@image| ../home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages/left%02d.dng |}");
-    string first_file = parser.get<string>("@image");
-
-    if(first_file.empty())
-    {
-        return 1;
-    }
-
-    VideoCapture sequence(first_file);
-
-    if (!sequence.isOpened())
-    {
-        cerr << "Failed to open the image sequence!\n" << endl;
-        return 1;
-    }
-
-    Mat image_sec;
-
-    for(;;)
-    {
-        // Read in image from sequence
-        sequence >> image_sec;
-
-        iProcessor.open_file(first_file.c_str());
-        iProcessor.unpack();
-        iProcessor.dcraw_process();
-
-        // If no image was retrieved -> end of sequence
-        if(image_sec.empty())
-        {
-            cout << "End of Sequence" << endl;
-            break;
-        }
-
-        //imshow("Image sequence | press ESC to close", image_sec);
-
-        //if(waitKey(500) == 27)
-        //    break;
-    }
-
-
-
-
-    std::string file = "/home/mtzschoppe/Desktop/portrait2.dng";
-    iProcessor.open_file(file.c_str());
-    iProcessor.unpack();
-    iProcessor.dcraw_process();
-
-    int ret = 0;
-    libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
-
-    auto img = cv::Mat(image->height, image->width, CV_16UC3); //CV_16UC3
-
-    for (int i = 0; i < image->height; i++) {
-        for (int j = 0; j < image->width; j++) {
-            int linindex = (i * image->width + j)*3;
-            cv::Vec3s tripel = cv::Vec3s((short)image->data[linindex+2]*256, (short)image->data[linindex +1]*256, (short)image->data[linindex ]*256);
-            img.at<cv::Vec3s>(i, j) = tripel;
-        }
-    }
-
-    img.convertTo(img, CV_8UC1, 1/256.0);
+    //string file = "/home/mtzschoppe/Desktop/portrait2.dng";
+    string file;
 
     std::string cascadeFrontalfilename = samples::findFile("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
 
@@ -145,61 +92,52 @@ int main(int arg_num, char *arg_vec[]) {
         return 2;
     }
 
-    //Mat ReferenceFrame;
-    Mat GrayFrame;
-    vector<Rect> Faces;
+    for (int k=0; k<3; k++) {
+        file = path_key[k];
 
-    do
-    {
-        //image >> ReferenceFrame;
-        cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
-        Detector.process(GrayFrame);
-        Detector.getObjects(Faces);
+        if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
+            fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
+        }
+        iProcessor.unpack();
+        iProcessor.dcraw_process();
 
-        for (size_t i = 0; i < Faces.size(); i++)
-        {
-            rectangle(img, Faces[i], Scalar(0,255,0));
+        int ret = 0;
+        libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
+
+        auto img = cv::Mat(image->height, image->width, CV_16UC3); //CV_16UC3
+
+        for (int i = 0; i < image->height; i++) {
+            for (int j = 0; j < image->width; j++) {
+                int linindex = (i * image->width + j)*3;
+                cv::Vec3s tripel = cv::Vec3s((short)image->data[linindex+2]*256, (short)image->data[linindex +1]*256, (short)image->data[linindex ]*256);
+                img.at<cv::Vec3s>(i, j) = tripel;
+            }
         }
 
-        imshow(WindowName, img);
-    } while (waitKey(30) < 0);
+        img.convertTo(img, CV_8UC1, 1/256.0);
+
+        //Mat ReferenceFrame;
+        Mat GrayFrame;
+        vector<Rect> Faces;
+
+        do
+        {
+            //image >> ReferenceFrame;
+            cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
+            Detector.process(GrayFrame);
+            Detector.getObjects(Faces);
+
+            for (size_t i = 0; i < Faces.size(); i++)
+            {
+                rectangle(img, Faces[i], Scalar(0,255,0));
+            }
+
+            imshow(WindowName, img);
+        } while (waitKey(3000) > 0);
+    }
 
     Detector.stop();
     iProcessor.recycle();
-
-    /* example -> open and show image:
-    LibRaw iProcessor;
-    //string file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/pikes-peak.nef";
-    std::string file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/portrait.nef";
-    if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
-        fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
-    }
-    iProcessor.unpack();
-    iProcessor.dcraw_process();
-
-    int ret = 0;
-    libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
-
-    auto img = cv::Mat(image->height, image->width, CV_16UC3);
-
-    for (int i = 0; i < image->height; i++) {
-        for (int j = 0; j < image->width; j++) {
-            int linindex = (i * image->width + j)*3;
-            cv::Vec3s tripel = cv::Vec3s((short)image->data[linindex+2]*256, (short)image->data[linindex +1]*256, (short)image->data[linindex ]*256);
-            img.at<cv::Vec3s>(i, j) = tripel;
-        }
-    }
-    //function for facetracking
-    //cv::FeatureDetector::detect();
-    //Tracker function
-    //createFaceDetectionMaskGenerator();
-
-    cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
-    cv::imshow("Display window", img);
-    cv::waitKey(0);
-
-    iProcessor.recycle();
-    */
 
     return 0;
 }
