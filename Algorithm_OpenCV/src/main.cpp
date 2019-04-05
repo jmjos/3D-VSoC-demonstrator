@@ -15,19 +15,10 @@
 using namespace std;
 using namespace cv;
 
-const string path_key[12] =
-        {"/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_01.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_02.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_03.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_04.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_05.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_06.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_07.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_08.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_09.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_10.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_11.dng",
-         "/home/mtzschoppe/Desktop/algorithm_opencv/cmake-build-debug/RAWImages/example_12.dng"};
+//number of images in folder ../RAWImages/...
+const int number_images = 8;
+
+const string path_key[2] = {"/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages/example_",".dng"};
 
 const string WindowName = "Face Detection example";
 
@@ -60,8 +51,8 @@ int main(int arg_num, char *arg_vec[]) {
 
     namedWindow(WindowName, cv::WINDOW_NORMAL);
 
-    //string file = "/home/mtzschoppe/Desktop/portrait2.dng";
     string file;
+    string string_k;
 
     std::string cascadeFrontalfilename = samples::findFile("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
 
@@ -92,9 +83,16 @@ int main(int arg_num, char *arg_vec[]) {
         return 2;
     }
 
-    for (int k=0; k<3; k++) {
-        file = path_key[k];
+    for (int k=0; k<number_images; k++) {
 
+        //convert int k to string
+        stringstream ss;
+        ss << k;
+        string_k = ss.str();
+        //get file path
+        file = path_key[0] + string_k + path_key[1];
+
+        //LibRaw
         if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
             fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
         }
@@ -106,6 +104,7 @@ int main(int arg_num, char *arg_vec[]) {
 
         auto img = cv::Mat(image->height, image->width, CV_16UC3); //CV_16UC3
 
+        //create image from raw to colour
         for (int i = 0; i < image->height; i++) {
             for (int j = 0; j < image->width; j++) {
                 int linindex = (i * image->width + j)*3;
@@ -114,6 +113,7 @@ int main(int arg_num, char *arg_vec[]) {
             }
         }
 
+        //convert from 16 bit to 8 bit
         img.convertTo(img, CV_8UC1, 1/256.0);
 
         //Mat ReferenceFrame;
@@ -123,17 +123,20 @@ int main(int arg_num, char *arg_vec[]) {
         do
         {
             //image >> ReferenceFrame;
+
+            //detect face
             cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
             Detector.process(GrayFrame);
             Detector.getObjects(Faces);
 
+            //draw rectangle around the face
             for (size_t i = 0; i < Faces.size(); i++)
             {
                 rectangle(img, Faces[i], Scalar(0,255,0));
             }
 
             imshow(WindowName, img);
-        } while (waitKey(3000) > 0);
+        } while (waitKey(30) < 0);
     }
 
     Detector.stop();
