@@ -20,111 +20,190 @@
 using namespace std;
 using namespace cv;
 
-//Convert to string
-#define SSTR( x ) static_cast< std::ostringstream & >( \
-( std::ostringstream() << std::dec << x ) ).str()
+//number of images in folder ../RAWImages/...
+const int number_images = 8;
 
-int main(int argc, char **argv)
+const string path_key[2] = {"/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages/example_",".dng"};
+
+const string WindowName = "Face Detection example";
+
+//functions
+vector<KeyPoint> computeFastFeatures(Mat);
+
+class CascadeDetectorAdapter: public DetectionBasedTracker::IDetector
 {
-    // List of tracker types in OpenCV 3.4.1
-    string trackerTypes[8] = {"BOOSTING", "MIL", "KCF", "TLD","MEDIANFLOW", "GOTURN", "MOSSE", "CSRT"};
-    // vector <string> trackerTypes(types, std::end(types));
-
-    // Create a tracker
-    string trackerType = trackerTypes[2];
-
-    Ptr<Tracker_f> tracker;
-
-#if (CV_MINOR_VERSION < 3)
+public:
+    CascadeDetectorAdapter(cv::Ptr<cv::CascadeClassifier> detector):
+            IDetector(),
+            Detector(detector)
     {
-        tracker = Tracker_f::create(trackerType);
-    }
-#else
-    {
-        if (trackerType == "BOOSTING")
-            tracker = TrackerBoosting::create();
-        if (trackerType == "MIL")
-            tracker = TrackerMIL::create();
-        if (trackerType == "KCF")
-            tracker = TrackerKCF::create();
-        if (trackerType == "TLD")
-            tracker = TrackerTLD::create();
-        if (trackerType == "MEDIANFLOW")
-            tracker = TrackerMedianFlow::create();
-        if (trackerType == "GOTURN")
-            tracker = TrackerGOTURN::create();
-        if (trackerType == "MOSSE")
-            tracker = TrackerMOSSE::create();
-        if (trackerType == "CSRT")
-            tracker = TrackerCSRT::create();
-    }
-#endif
-    // Read video
-    VideoCapture video("videos/chaplin.mp4");
-
-    // Exit if video is not opened
-    if(!video.isOpened())
-    {
-        cout << "Could not read video file" << endl;
-        return 1;
+        CV_Assert(detector);
     }
 
-    // Read first frame
-    Mat frame;
-    bool ok = video.read(frame);
-
-    // Define initial bounding box
-    Rect2d bbox(287, 23, 86, 320);
-
-    // Uncomment the line below to select a different bounding box
-    // bbox = selectROI(frame, false);
-    // Display bounding box.
-    rectangle(frame, bbox, Scalar( 255, 0, 0 ), 2, 1 );
-
-    imshow("Tracking", frame);
-    tracker->init(frame, bbox);
-
-    while(video.read(frame))
+    void detect(const cv::Mat &Image, std::vector<cv::Rect> &objects) CV_OVERRIDE
     {
-        // Start timer
-        double timer = (double)getTickCount();
+        Detector->detectMultiScale(Image, objects, scaleFactor, minNeighbours, 0, minObjSize, maxObjSize);
+    }
 
-        // Update the tracking result
-        bool ok = tracker->update(frame, bbox);
+    virtual ~CascadeDetectorAdapter() CV_OVERRIDE
+    {}
 
-        // Calculate Frames per second (FPS)
-        float fps = getTickFrequency() / ((double)getTickCount() - timer);
+private:
+    CascadeDetectorAdapter();
+    cv::Ptr<cv::CascadeClassifier> Detector;
+};
 
-        draw
+int main(int arg_num, char *arg_vec[]) {
 
-        if (ok)
-        {
-            // Tracking success : Draw the tracked object
-            rectangle(frame, bbox, Scalar( 255, 0, 0 ), 2, 1 );
+    LibRaw iProcessor;
+
+    namedWindow(WindowName, cv::WINDOW_NORMAL);
+
+    string file;
+    string string_k;
+
+    std::string cascadeFrontalfilename = samples::findFile("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
+
+    cv::Ptr<cv::CascadeClassifier> cascade = makePtr<cv::CascadeClassifier>(cascadeFrontalfilename);
+    cv::Ptr<DetectionBasedTracker::IDetector> MainDetector = makePtr<CascadeDetectorAdapter>(cascade);
+
+    if ( cascade->empty() )
+    {
+        printf("Error: Cannot load %s\n", cascadeFrontalfilename.c_str());
+        return 2;
+    }
+
+    cascade = makePtr<cv::CascadeClassifier>(cascadeFrontalfilename);
+    cv::Ptr<DetectionBasedTracker::IDetector> TrackingDetector = makePtr<CascadeDetectorAdapter>(cascade);
+
+    if ( cascade->empty() )
+    {
+        printf("Error: Cannot load %s\n", cascadeFrontalfilename.c_str());
+        return 2;
+    }
+
+    DetectionBasedTracker::Parameters params;
+    DetectionBasedTracker Detector(MainDetector, TrackingDetector, params);
+
+    if (!Detector.run())
+    {
+        printf("Error: Detector initialization failed\n");
+        return 2;
+    }
+
+
+
+    for (int k=0; k<number_images; k++) {
+
+        //convert int k to string
+        stringstream ss;
+        ss << k;
+        string_k = ss.str();
+        //get file path
+        file = path_key[0] + string_k + path_key[1];
+
+        //LibRaw
+        if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
+            fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
         }
-        else
-        {
-            // Tracking failure detected.
-            putText(frame, "Tracking failure detected", Point(100,80), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0,0,255),2);
-        }
+        iProcessor.unpack();
+        iProcessor.dcraw_process();
 
-        // Display tracker type on frame
-        putText(frame, trackerType + " Tracker", Point(100,20), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50,170,50),2);
+        int ret = 0;
+        libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
 
-        // Display FPS on frame
-        putText(frame, "FPS : " + SSTR(int(fps)), Point(100,50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50,170,50), 2);
+        auto img = cv::Mat(image->height, image->width, CV_16UC3); //CV_16UC3
 
-        // Display frame.
-        imshow("Tracking", frame);
-
-        // Exit if ESC pressed.
-        int k = waitKey(1);
-        if(k == 27)
-        {
-            break;
+        //create image from raw to colour
+        for (int i = 0; i < image->height; i++) {
+            for (int j = 0; j < image->width; j++) {
+                int linindex = (i * image->width + j)*3;
+                cv::Vec3s tripel = cv::Vec3s((short)image->data[linindex+2]*256, (short)image->data[linindex +1]*256, (short)image->data[linindex ]*256);
+                img.at<cv::Vec3s>(i, j) = tripel;
+            }
         }
 
+        //convert from 16 bit to 8 bit
+        img.convertTo(img, CV_8UC1, 1/256.0);
+
+        //vector<vector<Point2f> > facePoints;
+        //Mat MatRoadPoints=Mat(facePoints[0]);
+
+        //Mat ReferenceFrame;
+        Mat GrayFrame;
+        //Mat prev_frame = img.clone();
+        //Mat next_frame;
+        //Mat nextFrameKeypoints;
+
+        vector<Rect> Faces;
+        //vector<Point2f> prevPointFeatures,nextPointFeatures; //2f -> 2d float
+        //vector<Point2f> projectedPoints;
+        //vector<Point2f> currentPoints=facePoints[0];
+        //vector<KeyPoint> prevFeatures,nextFeatures;
+
+        /*
+        //detect face
+        cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
+        Detector.process(GrayFrame);
+        Detector.getObjects(Faces);
+         */
+
+
+
+        CascadeClassifier face_cascade;
+        face_cascade.load("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
+
+        if (!face_cascade.empty())
+            face_cascade.detectMultiScale(img, Faces, 1.15, 3, 0|CASCADE_SCALE_IMAGE, Size(30, 30));
+
+        //region of interest
+        //Mat ROI = img(Rect(Faces.x, Faces.y, Faces.width, Faces.height));
+
+        for(unsigned int i = 0; i < Faces.size(); ++i) {
+            // Mark the bounding box enclosing the face
+            Rect face = Faces[i];
+            rectangle(img, Point(face.x, face.y), Point(face.x + face.width, face.y + face.height),
+                      Scalar(0, 255, 0), 1, 4);
+
+            // Eyes, nose and mouth will be detected inside the face (region of interest)
+            Mat ROI = img(Rect(face.x, face.y, face.width, face.height));
+
+            //drawKeypoints(img, )
+        }
+        imshow(WindowName, img);
+        waitKey(0);
+/*
+            do
+        {
+            //image >> ReferenceFrame;
+
+            //detect face
+            cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
+            Detector.process(GrayFrame);
+            Detector.getObjects(Faces);
+
+            //draw rectangle around the face
+            for (size_t i = 0; i < Faces.size(); i++)
+            {
+                rectangle(img, Faces[i], Scalar(0,255,0));
+            }
+
+            imshow(WindowName, img);
+        } while (waitKey(30) < 0); */
     }
+
+    Detector.stop();
+    iProcessor.recycle();
+
+    return 0;
+}
+
+vector<KeyPoint> computeFastFeatures(Mat frame){
+    Mat keypoint_image;
+    vector<KeyPoint> keypoint_descriptors;
+    int threshold=50;
+    FAST(frame,keypoint_descriptors,threshold,true);
+    return keypoint_descriptors;
 }
 
 
