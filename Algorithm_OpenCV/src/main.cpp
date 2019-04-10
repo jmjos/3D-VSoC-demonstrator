@@ -28,7 +28,6 @@ const string path_key[2] = {"/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator
 const string WindowName = "Face Detection example";
 
 //functions
-vector<KeyPoint> computeFastFeatures(Mat);
 
 class CascadeDetectorAdapter: public DetectionBasedTracker::IDetector
 {
@@ -91,7 +90,22 @@ int main(int arg_num, char *arg_vec[]) {
         return 2;
     }
 
+    //TODO: fix error with "Tracker"
 
+    // List of tracker types in OpenCV 3.4.1
+    string trackerTypes = "TLD";
+    // vector <string> trackerTypes(types, std::end(types));
+
+    // Create a tracker
+    string trackerType = trackerTypes;
+
+    Ptr<Tracker> tracker;
+
+    if (trackerType == "TLD")
+        tracker = TrackerTLD::create();
+
+    // Define initial bounding box
+    Rect2d bbox(287, 23, 86, 320);
 
     for (int k=0; k<number_images; k++) {
 
@@ -126,29 +140,59 @@ int main(int arg_num, char *arg_vec[]) {
         //convert from 16 bit to 8 bit
         img.convertTo(img, CV_8UC1, 1/256.0);
 
-        //vector<vector<Point2f> > facePoints;
-        //Mat MatRoadPoints=Mat(facePoints[0]);
+        //select manually a region of interest
+        bbox = selectROI(img, false);
+        rectangle(img, bbox, Scalar( 255, 0, 0 ), 1, 4 );
 
-        //Mat ReferenceFrame;
-        Mat GrayFrame;
-        //Mat prev_frame = img.clone();
-        //Mat next_frame;
-        //Mat nextFrameKeypoints;
+        imshow("Tracking", img);
 
-        vector<Rect> Faces;
-        //vector<Point2f> prevPointFeatures,nextPointFeatures; //2f -> 2d float
-        //vector<Point2f> projectedPoints;
-        //vector<Point2f> currentPoints=facePoints[0];
-        //vector<KeyPoint> prevFeatures,nextFeatures;
+        tracker->init(img, bbox);
+
+        while(video.read(img))
+        {
+            // Start timer
+            double timer = (double)getTickCount();
+
+            // Update the tracking result
+            bool ok = tracker->update(img, bbox);
+
+            // Calculate Frames per second (FPS)
+            float fps = getTickFrequency() / ((double)getTickCount() - timer);
+
+            if (ok)
+            {
+                // Tracking success : Draw the tracked object
+                rectangle(img, bbox, Scalar( 255, 0, 0 ), 2, 1 );
+            }
+            else
+            {
+                // Tracking failure detected.
+                putText(img, "Tracking failure detected", Point(100,80), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0,0,255),2);
+            }
+
+            // Display tracker type on frame
+            putText(img, trackerType + " Tracker", Point(100,20), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50,170,50),2);
+
+            // Display FPS on frame
+            putText(img, "FPS : " + SSTR(int(fps)), Point(100,50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50,170,50), 2);
+
+            // Display frame.
+            imshow("Tracking", img);
+
+            // Exit if ESC pressed.
+            int k = waitKey(1);
+            if(k == 27)
+            {
+                break;
+            }
+
+        }
 
         /*
-        //detect face
-        cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
-        Detector.process(GrayFrame);
-        Detector.getObjects(Faces);
-         */
+        //Mat ReferenceFrame;
+        Mat GrayFrame;
 
-
+        vector<Rect> Faces;
 
         CascadeClassifier face_cascade;
         face_cascade.load("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
@@ -159,21 +203,23 @@ int main(int arg_num, char *arg_vec[]) {
         //region of interest
         //Mat ROI = img(Rect(Faces.x, Faces.y, Faces.width, Faces.height));
 
-        for(unsigned int i = 0; i < Faces.size(); ++i) {
+        for(int i = 0; i < Faces.size(); ++i) {
             // Mark the bounding box enclosing the face
             Rect face = Faces[i];
-            rectangle(img, Point(face.x, face.y), Point(face.x + face.width, face.y + face.height),
-                      Scalar(0, 255, 0), 1, 4);
+            //rectangle(img, Point(face.x, face.y), Point(face.x + face.width, face.y + face.height), Scalar(0, 255, 0), 1, 4);
 
             // Eyes, nose and mouth will be detected inside the face (region of interest)
             Mat ROI = img(Rect(face.x, face.y, face.width, face.height));
 
             //drawKeypoints(img, )
         }
+
         imshow(WindowName, img);
         waitKey(0);
-/*
-            do
+        */
+
+        /*
+        do
         {
             //image >> ReferenceFrame;
 
@@ -189,21 +235,14 @@ int main(int arg_num, char *arg_vec[]) {
             }
 
             imshow(WindowName, img);
-        } while (waitKey(30) < 0); */
+        } while (waitKey(30) < 0);
+        */
     }
 
     Detector.stop();
     iProcessor.recycle();
 
     return 0;
-}
-
-vector<KeyPoint> computeFastFeatures(Mat frame){
-    Mat keypoint_image;
-    vector<KeyPoint> keypoint_descriptors;
-    int threshold=50;
-    FAST(frame,keypoint_descriptors,threshold,true);
-    return keypoint_descriptors;
 }
 
 
