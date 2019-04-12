@@ -135,12 +135,20 @@ int main(int arg_num, char *arg_vec[]) {
 
         vector<Rect> Faces;
 
+
+        CascadeClassifier face_cascade;
+        face_cascade.load("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
+
+
+
         //loop for face detection
         for (int g=0; g<detection_loop; g++){
             //detect face
             cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
             Detector.process(GrayFrame);
             Detector.getObjects(Faces);
+
+            //face_cascade.detectMultiScale(img, Faces, 1.15, 3, 0|CASCADE_SCALE_IMAGE, Size(30, 30));
 
             //draw rectangle around the face
             for (size_t i = 0; i < Faces.size(); i++)
@@ -154,7 +162,7 @@ int main(int arg_num, char *arg_vec[]) {
         TermCriteria termcrit(TermCriteria::MAX_ITER|TermCriteria::EPS, 20, 0.3);
 
         // We use two sets of points in order to swap pointers
-        vector<Point2d> points[2];
+        vector<Point2f> points[2];
         Size subPixWinSize(10,10), winSize(21,21);
 
         //Feature detection is performed here...
