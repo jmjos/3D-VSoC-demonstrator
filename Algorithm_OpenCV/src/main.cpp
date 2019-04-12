@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <vector>
 #include <algorithm>
+#include <ctype.h>
 
 #include "libraw/libraw.h"
 #include <opencv2/opencv.hpp>
@@ -16,12 +17,15 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/ocl.hpp>
 #include <opencv2/video/tracking.hpp>
+#include <opencv2/core/types.hpp>
 
 using namespace std;
 using namespace cv;
 
 //number of images in folder ../RAWImages/...
 const int number_images = 8;
+const int detection_loop = 50;
+const int MAX_COUNT = 100;
 
 const string path_key[2] = {"/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages/example_",".dng"};
 
@@ -84,31 +88,17 @@ int main(int arg_num, char *arg_vec[]) {
     DetectionBasedTracker::Parameters params;
     DetectionBasedTracker Detector(MainDetector, TrackingDetector, params);
 
+
+
     if (!Detector.run())
     {
         printf("Error: Detector initialization failed\n");
         return 2;
     }
 
-    //TODO: fix error with "Tracker"
-
-    // List of tracker types in OpenCV 3.4.1
-    string trackerTypes = "TLD";
-    // vector <string> trackerTypes(types, std::end(types));
-
-    // Create a tracker
-    string trackerType = trackerTypes;
-
-    Ptr<Tracker> tracker;
-
-    if (trackerType == "TLD")
-        tracker = TrackerTLD::create();
-
-    // Define initial bounding box
-    Rect2d bbox(287, 23, 86, 320);
-
     for (int k=0; k<number_images; k++) {
 
+        //path to image
         //convert int k to string
         stringstream ss;
         ss << k;
@@ -140,89 +130,13 @@ int main(int arg_num, char *arg_vec[]) {
         //convert from 16 bit to 8 bit
         img.convertTo(img, CV_8UC1, 1/256.0);
 
-        //select manually a region of interest
-        bbox = selectROI(img, false);
-        rectangle(img, bbox, Scalar( 255, 0, 0 ), 1, 4 );
-
-        imshow("Tracking", img);
-
-        tracker->init(img, bbox);
-
-        while(video.read(img))
-        {
-            // Start timer
-            double timer = (double)getTickCount();
-
-            // Update the tracking result
-            bool ok = tracker->update(img, bbox);
-
-            // Calculate Frames per second (FPS)
-            float fps = getTickFrequency() / ((double)getTickCount() - timer);
-
-            if (ok)
-            {
-                // Tracking success : Draw the tracked object
-                rectangle(img, bbox, Scalar( 255, 0, 0 ), 2, 1 );
-            }
-            else
-            {
-                // Tracking failure detected.
-                putText(img, "Tracking failure detected", Point(100,80), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0,0,255),2);
-            }
-
-            // Display tracker type on frame
-            putText(img, trackerType + " Tracker", Point(100,20), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50,170,50),2);
-
-            // Display FPS on frame
-            putText(img, "FPS : " + SSTR(int(fps)), Point(100,50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50,170,50), 2);
-
-            // Display frame.
-            imshow("Tracking", img);
-
-            // Exit if ESC pressed.
-            int k = waitKey(1);
-            if(k == 27)
-            {
-                break;
-            }
-
-        }
-
-        /*
         //Mat ReferenceFrame;
         Mat GrayFrame;
 
         vector<Rect> Faces;
 
-        CascadeClassifier face_cascade;
-        face_cascade.load("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
-
-        if (!face_cascade.empty())
-            face_cascade.detectMultiScale(img, Faces, 1.15, 3, 0|CASCADE_SCALE_IMAGE, Size(30, 30));
-
-        //region of interest
-        //Mat ROI = img(Rect(Faces.x, Faces.y, Faces.width, Faces.height));
-
-        for(int i = 0; i < Faces.size(); ++i) {
-            // Mark the bounding box enclosing the face
-            Rect face = Faces[i];
-            //rectangle(img, Point(face.x, face.y), Point(face.x + face.width, face.y + face.height), Scalar(0, 255, 0), 1, 4);
-
-            // Eyes, nose and mouth will be detected inside the face (region of interest)
-            Mat ROI = img(Rect(face.x, face.y, face.width, face.height));
-
-            //drawKeypoints(img, )
-        }
-
-        imshow(WindowName, img);
-        waitKey(0);
-        */
-
-        /*
-        do
-        {
-            //image >> ReferenceFrame;
-
+        //loop for face detection
+        for (int g=0; g<detection_loop; g++){
             //detect face
             cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
             Detector.process(GrayFrame);
@@ -231,11 +145,30 @@ int main(int arg_num, char *arg_vec[]) {
             //draw rectangle around the face
             for (size_t i = 0; i < Faces.size(); i++)
             {
-                rectangle(img, Faces[i], Scalar(0,255,0));
+                rectangle(img, Faces[i], Scalar(255,255,0));
             }
 
             imshow(WindowName, img);
-        } while (waitKey(30) < 0);
+        }
+
+        TermCriteria termcrit(TermCriteria::MAX_ITER|TermCriteria::EPS, 20, 0.3);
+
+        // We use two sets of points in order to swap pointers
+        vector<Point2d> points[2];
+        Size subPixWinSize(10,10), winSize(21,21);
+
+        //Feature detection is performed here...
+        goodFeaturesToTrack(GrayFrame, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
+        cornerSubPix(GrayFrame, points[1], subPixWinSize, Size(-1,-1), termcrit);
+
+        waitKey(0);
+
+        /*
+        CascadeClassifier face_cascade;
+        face_cascade.load("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
+
+        if (!face_cascade.empty())
+            face_cascade.detectMultiScale(img, Faces, 1.15, 3, 0|CASCADE_SCALE_IMAGE, Size(30, 30));
         */
     }
 
