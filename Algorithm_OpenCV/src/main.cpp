@@ -156,7 +156,6 @@ int main(int arg_num, char *arg_vec[]) {
                 rectangle(img, Faces[i], Scalar(255,255,0));
             }
 
-            imshow(WindowName, img);
         }
 
         TermCriteria termcrit(TermCriteria::MAX_ITER|TermCriteria::EPS, 20, 0.3);
@@ -168,6 +167,9 @@ int main(int arg_num, char *arg_vec[]) {
         //Feature detection is performed here...
         goodFeaturesToTrack(GrayFrame, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
         cornerSubPix(GrayFrame, points[1], subPixWinSize, Size(-1,-1), termcrit);
+
+        imshow(WindowName, GrayFrame);
+        //todo OPTICAL flOW FUNCTion
 
         waitKey(0);
 
