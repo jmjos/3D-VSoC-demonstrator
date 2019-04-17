@@ -267,8 +267,8 @@ int main(int arg_num, char *arg_vec[]) {
         cvtColor(img, gray, COLOR_BGR2GRAY);
 
         //TODO crop face
-        //Mat image_2 = gray;
-        //Mat crop = image_2(Rect(Faces_x, Faces_y, Faces_height, Faces_width));
+        Mat image_2 = gray;
+        Mat crop = image_2(Rect(Faces_x, Faces_y, Faces_height, Faces_width));
         //imshow("LK Demo", crop);
         //waitKey(0);
         //TODO crop face end
@@ -278,8 +278,8 @@ int main(int arg_num, char *arg_vec[]) {
         }
 
         // automatic initialization
-        goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
-        cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
+        goodFeaturesToTrack(crop, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
+        cornerSubPix(crop, points[1], subPixWinSize, Size(-1,-1), termcrit);
         addRemovePt = false;
 
         if( !points[0].empty() )
@@ -287,8 +287,8 @@ int main(int arg_num, char *arg_vec[]) {
             vector<uchar> status;
             vector<float> err;
             if(prevGray.empty())
-                gray.copyTo(prevGray);
-            calcOpticalFlowPyrLK(prevGray, gray, points[0], points[1], status, err, winSize, 3, termcrit, 0, 0.001);
+                crop.copyTo(prevGray);
+            calcOpticalFlowPyrLK(prevGray, crop, points[0], points[1], status, err, winSize, 3, termcrit, 0, 0.001);
             size_t i, k;
             for( i = k = 0; i < points[1].size(); i++ )
             {
@@ -311,7 +311,7 @@ int main(int arg_num, char *arg_vec[]) {
         {
             vector<Point2f> tmp;
             tmp.push_back(point);
-            cornerSubPix( gray, tmp, winSize, Size(-1,-1), termcrit);
+            cornerSubPix( crop, tmp, winSize, Size(-1,-1), termcrit);
             points[1].push_back(tmp[0]);
             addRemovePt = false;
         }
@@ -331,7 +331,7 @@ int main(int arg_num, char *arg_vec[]) {
                 break;
         }
         std::swap(points[1], points[0]);
-        cv::swap(prevGray, gray);
+        cv::swap(prevGray, crop);
 
         if (m >  number_images) {
             break;
