@@ -13,7 +13,7 @@ ADD_DEFINITIONS(-D SC_INCLUDE_DYNAMIC_PROCESSES)
 
 ADD_EXECUTABLE(${PROJECT_NAME} src/main.cpp)
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} raw opencv_core opencv_highgui opencv_imgproc opencv_videoio opencv_features2d opencv_objdetect)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} raw opencv_core opencv_highgui opencv_imgproc opencv_videoio opencv_features2d opencv_objdetect opencv_video)
 
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
