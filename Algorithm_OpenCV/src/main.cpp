@@ -23,13 +23,14 @@ using namespace std;
 using namespace cv;
 
 //number of images in folder ../RAWImages/...
-const int number_images = 8;
-const int detection_loop = 50;
+const int number_images = 6; //27
+const int detection_loop = 150;
 const int MAX_COUNT = 100;
 
 const string path_key[2] = {"/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages/example_",".dng"};
+//const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/filename000",".png"};
 
-const string WindowName = "Face Detection example";
+//const string WindowName = "Face Detection example";
 
 //functions
 static void help()
@@ -83,7 +84,7 @@ int main(int arg_num, char *arg_vec[]) {
 
     LibRaw iProcessor;
 
-    namedWindow(WindowName, cv::WINDOW_NORMAL);
+    //namedWindow(WindowName, cv::WINDOW_NORMAL);
 
     string file;
     string string_k;
@@ -119,52 +120,216 @@ int main(int arg_num, char *arg_vec[]) {
         return 2;
     }
 
-    for (int k=0; k<number_images; k++) {
+    //TODO feature points tracking:
+    //VideoCapture cap("/home/mtzschoppe/Downloads/sample-videos/head-pose-face-detection-male.mp4");
+    TermCriteria termcrit(TermCriteria::COUNT|TermCriteria::EPS,20,0.03);
+    Size subPixWinSize(10,10), winSize(31,31);
+    bool needToInit = true;
+    bool nightMode = false;
+    help();
 
-        //path to image
-        //convert int k to string
-        stringstream ss;
-        ss << k;
-        string_k = ss.str();
-        //get file path
-        file = path_key[0] + string_k + path_key[1];
+    vector<Rect> Faces;
 
-        //LibRaw
-        if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
-            fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
+    /*
+    if( !cap.isOpened() )
+    {
+        cerr << "Could not initialize capturing...\n";
+        return 0;
+    }
+    */
+    namedWindow("LK Demo", cv::WINDOW_NORMAL);
+    setMouseCallback( "LK Demo", onMouse, 0 );
+    Mat gray, prevGray, frame;
+    vector<Point2f> points[2];
+
+    //path to image
+    //convert int k to string
+    stringstream ss;
+    ss << 0; //48
+    string_k = ss.str();
+    //get file path
+    file = path_key[0] + string_k + path_key[1];
+
+
+    //LibRaw
+    if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
+        fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
+    }
+    iProcessor.unpack();
+    iProcessor.dcraw_process();
+
+    int ret = 0;
+    libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
+
+    auto img = cv::Mat(image->height, image->width, CV_16UC3); //CV_16UC3
+
+    //create image from raw to colour
+    for (int i = 0; i < image->height; i++) {
+        for (int j = 0; j < image->width; j++) {
+            int linindex = (i * image->width + j)*3;
+            cv::Vec3s tripel = cv::Vec3s((short)image->data[linindex+2]*256, (short)image->data[linindex +1]*256, (short)image->data[linindex ]*256);
+            img.at<cv::Vec3s>(i, j) = tripel;
         }
-        iProcessor.unpack();
-        iProcessor.dcraw_process();
+    }
 
-        int ret = 0;
-        libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
 
-        auto img = cv::Mat(image->height, image->width, CV_16UC3); //CV_16UC3
+    //Mat img = imread(file,4);
 
-        //create image from raw to colour
-        for (int i = 0; i < image->height; i++) {
-            for (int j = 0; j < image->width; j++) {
-                int linindex = (i * image->width + j)*3;
-                cv::Vec3s tripel = cv::Vec3s((short)image->data[linindex+2]*256, (short)image->data[linindex +1]*256, (short)image->data[linindex ]*256);
-                img.at<cv::Vec3s>(i, j) = tripel;
+    //convert from 16 bit to 8 bit
+    img.convertTo(img, CV_8UC1, 1/256.0);
+
+    for (int g=0; g<detection_loop; g++){
+        cvtColor(img, gray, COLOR_BGR2GRAY);
+        Detector.process(gray);
+        Detector.getObjects(Faces);
+
+        //draw rectangle around the face
+        cout << "dedectionloop" << endl;
+
+        for (size_t i = 0; i < Faces.size(); i++)
+        {
+            cout << Faces.size() << endl;
+            rectangle(img, Faces[i], Scalar(255,255,0));
+            cout << Faces[i] << endl;
+        }
+
+    }
+    imshow("LK Demo", img);
+    waitKey(0);
+
+        int m=1;
+
+        //TODO tracking:
+        for(;;)
+        {
+
+            //TODO read image:
+            //path to image
+            //convert int k to string
+            stringstream ss;
+            ss << m;
+            string_k = ss.str();
+            //get file path
+            file = path_key[0] + string_k + path_key[1];
+
+
+            //LibRaw
+            if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
+                fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
             }
-        }
+            iProcessor.unpack();
+            iProcessor.dcraw_process();
 
-        //convert from 16 bit to 8 bit
-        img.convertTo(img, CV_8UC1, 1/256.0);
+            int ret = 0;
+            libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
+
+            auto img = cv::Mat(image->height, image->width, CV_16UC3); //CV_16UC3
+
+            //create image from raw to colour
+            for (int i = 0; i < image->height; i++) {
+                for (int j = 0; j < image->width; j++) {
+                    int linindex = (i * image->width + j)*3;
+                    cv::Vec3s tripel = cv::Vec3s((short)image->data[linindex+2]*256, (short)image->data[linindex +1]*256, (short)image->data[linindex ]*256);
+                    img.at<cv::Vec3s>(i, j) = tripel;
+                }
+            }
+
+
+            //Mat img = imread(file,4);
+            //convert from 16 bit to 8 bit
+            img.convertTo(img, CV_8UC1, 1/256.0);
+
+            //TODO begin tracking:
+            cvtColor(img, gray, COLOR_BGR2GRAY);
+
+            //Mat image_2 = img;
+            //Rect roi = Faces;
+            //Faces.width
+
+            //Mat crop = image_2(Rect(10,10,image->width,image->height));
+
+            if( nightMode )
+                img = Scalar::all(0);
+
+
+                // automatic initialization
+                goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
+                cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
+                addRemovePt = false;
+
+            if( !points[0].empty() )
+            {
+                vector<uchar> status;
+                vector<float> err;
+                if(prevGray.empty())
+                    gray.copyTo(prevGray);
+                calcOpticalFlowPyrLK(prevGray, gray, points[0], points[1], status, err, winSize, 3, termcrit, 0, 0.001);
+                size_t i, k;
+                for( i = k = 0; i < points[1].size(); i++ )
+                {
+                    if( addRemovePt )
+                    {
+                        if( norm(point - points[1][i]) <= 5 )
+                        {
+                            addRemovePt = false;
+                            continue;
+                        }
+                    }
+                    if( !status[i] )
+                        continue;
+                    points[1][k++] = points[1][i];
+                    circle( img, points[1][i], 3, Scalar(0,255,0), -1, 8);
+                }
+                points[1].resize(k);
+            }
+            if( addRemovePt && points[1].size() < (size_t)MAX_COUNT )
+            {
+                vector<Point2f> tmp;
+                tmp.push_back(point);
+                cornerSubPix( gray, tmp, winSize, Size(-1,-1), termcrit);
+                points[1].push_back(tmp[0]);
+                addRemovePt = false;
+            }
+            needToInit = true;
+            imshow("LK Demo", img);
+            char c = (char)waitKey(500);
+            if( c == 27 )
+                break;
+            switch( c )
+            {
+                case 'r':
+                    needToInit = false;
+                    break;
+                case 'c':
+                    points[0].clear();
+                    points[1].clear();
+                    break;
+                case 'n':
+                    nightMode = !nightMode;
+                    break;
+            }
+            std::swap(points[1], points[0]);
+            cv::swap(prevGray, gray);
+
+            if (m >  number_images) {
+                break;
+            }
+            m++;
+        }
 
         //Mat ReferenceFrame;
-        Mat GrayFrame;
+        //Mat GrayFrame;
 
-        vector<Rect> Faces;
+        //vector<Rect> Faces;
 
 
-        CascadeClassifier face_cascade;
-        face_cascade.load("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
+        //CascadeClassifier face_cascade;
+        //face_cascade.load("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
 
 
 
         //loop for face detection
+        /*
         for (int g=0; g<detection_loop; g++){
             //detect face
             cvtColor(img, GrayFrame, COLOR_BGR2GRAY);
@@ -181,21 +346,10 @@ int main(int arg_num, char *arg_vec[]) {
 
         }
 
-        TermCriteria termcrit(TermCriteria::MAX_ITER|TermCriteria::EPS, 20, 0.3);
-
-        // We use two sets of points in order to swap pointers
-        vector<Point2f> points[2];
-        Size subPixWinSize(10,10), winSize(21,21);
-
-        //Feature detection is performed here...
-        goodFeaturesToTrack(GrayFrame, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
-        cornerSubPix(GrayFrame, points[1], subPixWinSize, Size(-1,-1), termcrit);
-
-        imshow(WindowName, GrayFrame);
-        //todo OPTICAL flOW FUNCTion
+        imshow(WindowName, img);
 
         waitKey(0);
-
+        */
         /*
         CascadeClassifier face_cascade;
         face_cascade.load("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
@@ -203,95 +357,10 @@ int main(int arg_num, char *arg_vec[]) {
         if (!face_cascade.empty())
             face_cascade.detectMultiScale(img, Faces, 1.15, 3, 0|CASCADE_SCALE_IMAGE, Size(30, 30));
         */
-    }
 
-    //TODO feature points tracking:
-    VideoCapture cap("/home/mtzschoppe/Downloads/sample-videos/head-pose-face-detection-male.mp4");
-    TermCriteria termcrit(TermCriteria::COUNT|TermCriteria::EPS,20,0.03);
-    Size subPixWinSize(10,10), winSize(31,31);
-    bool needToInit = false;
-    bool nightMode = false;
-    help();
 
-    if( !cap.isOpened() )
-    {
-        cerr << "Could not initialize capturing...\n";
-        return 0;
-    }
-    namedWindow( "LK Demo", 1 );
-    setMouseCallback( "LK Demo", onMouse, 0 );
-    Mat gray, prevGray, image, frame;
-    vector<Point2f> points[2];
-    for(;;)
-    {
-        cap >> frame;
-        if( frame.empty() )
-            break;
-        frame.copyTo(image);
-        cvtColor(image, gray, COLOR_BGR2GRAY);
-        if( nightMode )
-            image = Scalar::all(0);
-        if( needToInit )
-        {
-            // automatic initialization
-            goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
-            cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
-            addRemovePt = false;
-        }
-        else if( !points[0].empty() )
-        {
-            vector<uchar> status;
-            vector<float> err;
-            if(prevGray.empty())
-                gray.copyTo(prevGray);
-            calcOpticalFlowPyrLK(prevGray, gray, points[0], points[1], status, err, winSize, 3, termcrit, 0, 0.001);
-            size_t i, k;
-            for( i = k = 0; i < points[1].size(); i++ )
-            {
-                if( addRemovePt )
-                {
-                    if( norm(point - points[1][i]) <= 5 )
-                    {
-                        addRemovePt = false;
-                        continue;
-                    }
-                }
-                if( !status[i] )
-                    continue;
-                points[1][k++] = points[1][i];
-                circle( image, points[1][i], 3, Scalar(0,255,0), -1, 8);
-            }
-            points[1].resize(k);
-        }
-        if( addRemovePt && points[1].size() < (size_t)MAX_COUNT )
-        {
-            vector<Point2f> tmp;
-            tmp.push_back(point);
-            cornerSubPix( gray, tmp, winSize, Size(-1,-1), termcrit);
-            points[1].push_back(tmp[0]);
-            addRemovePt = false;
-        }
-        needToInit = false;
-        imshow("LK Demo", image);
-        char c = (char)waitKey(10);
-        if( c == 27 )
-            break;
-        switch( c )
-        {
-            case 'r':
-                needToInit = true;
-                break;
-            case 'c':
-                points[0].clear();
-                points[1].clear();
-                break;
-            case 'n':
-                nightMode = !nightMode;
-                break;
-        }
-        std::swap(points[1], points[0]);
-        cv::swap(prevGray, gray);
-    }
+
+
 
     Detector.stop();
     iProcessor.recycle();
