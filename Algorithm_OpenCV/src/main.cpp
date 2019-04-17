@@ -18,17 +18,21 @@
 #include <opencv2/core/ocl.hpp>
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/core/types.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 using namespace std;
 using namespace cv;
 
 //number of images in folder ../RAWImages/...
-const int number_images = 6; //27
-const int detection_loop = 150;
+const int number_images = 506; //8 oder 28 oder 506
+const int first_image = 449; //0 oder 48 oder 449
+const int second_image = 450; //1 oder 49 oder 450
+const int detection_loop = 500;
 const int MAX_COUNT = 100;
 
-const string path_key[2] = {"/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages/example_",".dng"};
-//const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/filename000",".png"};
+//const string path_key[2] = {"/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages/example_",".dng"};
+//const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/1/filename000",".png"}; //zweistellige Zahlen
+const string path_key[] = {"/home/mtzschoppe/Desktop/face images/2/filename00",".png"}; //dreistellige Zahlen
 
 //const string WindowName = "Face Detection example";
 
@@ -145,12 +149,12 @@ int main(int arg_num, char *arg_vec[]) {
     //path to image
     //convert int k to string
     stringstream ss;
-    ss << 0; //48
+    ss << first_image;
     string_k = ss.str();
     //get file path
     file = path_key[0] + string_k + path_key[1];
 
-
+    /*
     //LibRaw
     if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
         fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
@@ -171,9 +175,25 @@ int main(int arg_num, char *arg_vec[]) {
             img.at<cv::Vec3s>(i, j) = tripel;
         }
     }
+    */
 
 
-    //Mat img = imread(file,4);
+    Mat img, mask, imga;
+
+    /*
+    imga = imread(file,1);
+    //imshow("LK Demo", imga);
+    //waitKey(0);
+
+
+
+    imga.copyTo(img);
+
+    cvtColor(img, gray, COLOR_BGR2GRAY);
+    mask.create(img.rows+2, img.cols+2, CV_8UC1);
+    imshow("LK Demo", mask);
+    waitKey(0);
+
 
     //convert from 16 bit to 8 bit
     img.convertTo(img, CV_8UC1, 1/256.0);
@@ -199,17 +219,22 @@ int main(int arg_num, char *arg_vec[]) {
 
         }
 
+
         Faces_height=Faces[0].height;
         Faces_width =Faces[0].width;
         Faces_x =Faces[0].x;
         Faces_y =Faces[0].y;
     }
+    if (Faces.size() == 0) {
+        cerr << "cannot detect face" << endl;
+    }
 
     cout << "Eckdaten: " << Faces_height << "\t" << Faces_width << "\n" << Faces_x << "\t" << Faces_y << endl;
     imshow("LK Demo", img);
     waitKey(0);
+    */
 
-        int m=1;
+        int m=second_image;
 
         //TODO tracking:
         for(;;)
@@ -224,7 +249,7 @@ int main(int arg_num, char *arg_vec[]) {
             //get file path
             file = path_key[0] + string_k + path_key[1];
 
-
+            /*
             //LibRaw
             if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
                 fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
@@ -245,34 +270,31 @@ int main(int arg_num, char *arg_vec[]) {
                     img.at<cv::Vec3s>(i, j) = tripel;
                 }
             }
+            */
 
+            imga = imread(file,1);
+            imga.copyTo(img);
 
-            //Mat img = imread(file,4);
             //convert from 16 bit to 8 bit
-            img.convertTo(img, CV_8UC1, 1/256.0);
+            //img.convertTo(img, CV_8UC1, 1/256.0);
+
 
             //TODO begin tracking:
             cvtColor(img, gray, COLOR_BGR2GRAY);
 
-            Mat image_2 = gray;
-            //Rect roi = Faces;
-            //Faces.width
-
-            Mat crop = image_2(Rect(Faces_x, Faces_y, Faces_height, Faces_width));
-
-            //crop.convertTo(crop, CV_8UC1, 1/256.0);
-
-            imshow("LK Demo", crop);
-            waitKey(0);
+            //crop face
+            //Mat image_2 = gray;
+            //Mat crop = image_2(Rect(Faces_x, Faces_y, Faces_height, Faces_width));
+            //imshow("LK Demo", crop);
+            //waitKey(0);
 
             if( nightMode )
                 img = Scalar::all(0);
 
-
-                // automatic initialization
-                goodFeaturesToTrack(crop, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
-                cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
-                addRemovePt = false;
+            // automatic initialization
+            goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
+            cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
+            addRemovePt = false;
 
             if( !points[0].empty() )
             {
@@ -309,9 +331,10 @@ int main(int arg_num, char *arg_vec[]) {
             }
             needToInit = true;
             imshow("LK Demo", img);
-            char c = (char)waitKey(500);
-            if( c == 27 )
+            char c = (char)waitKey(50);
+            if( c == 27 ) {
                 break;
+            }
             switch( c )
             {
                 case 'r':
@@ -374,10 +397,6 @@ int main(int arg_num, char *arg_vec[]) {
         if (!face_cascade.empty())
             face_cascade.detectMultiScale(img, Faces, 1.15, 3, 0|CASCADE_SCALE_IMAGE, Size(30, 30));
         */
-
-
-
-
 
     Detector.stop();
     iProcessor.recycle();
