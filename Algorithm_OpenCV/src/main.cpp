@@ -178,6 +178,8 @@ int main(int arg_num, char *arg_vec[]) {
     //convert from 16 bit to 8 bit
     img.convertTo(img, CV_8UC1, 1/256.0);
 
+    int Faces_height,Faces_width,Faces_x,Faces_y;
+
     for (int g=0; g<detection_loop; g++){
         cvtColor(img, gray, COLOR_BGR2GRAY);
         Detector.process(gray);
@@ -186,14 +188,24 @@ int main(int arg_num, char *arg_vec[]) {
         //draw rectangle around the face
         cout << "dedectionloop" << endl;
 
+
         for (size_t i = 0; i < Faces.size(); i++)
         {
             cout << Faces.size() << endl;
+            cout << Faces[0].height << "\t" << Faces[0].width <<endl;
+            cout << Faces[0].x << "\t" << Faces[0].y <<endl;
             rectangle(img, Faces[i], Scalar(255,255,0));
             cout << Faces[i] << endl;
+
         }
 
+        Faces_height=Faces[0].height;
+        Faces_width =Faces[0].width;
+        Faces_x =Faces[0].x;
+        Faces_y =Faces[0].y;
     }
+
+    cout << "Eckdaten: " << Faces_height << "\t" << Faces_width << "\n" << Faces_x << "\t" << Faces_y << endl;
     imshow("LK Demo", img);
     waitKey(0);
 
@@ -242,18 +254,23 @@ int main(int arg_num, char *arg_vec[]) {
             //TODO begin tracking:
             cvtColor(img, gray, COLOR_BGR2GRAY);
 
-            //Mat image_2 = img;
+            Mat image_2 = gray;
             //Rect roi = Faces;
             //Faces.width
 
-            //Mat crop = image_2(Rect(10,10,image->width,image->height));
+            Mat crop = image_2(Rect(Faces_x, Faces_y, Faces_height, Faces_width));
+
+            //crop.convertTo(crop, CV_8UC1, 1/256.0);
+
+            imshow("LK Demo", crop);
+            waitKey(0);
 
             if( nightMode )
                 img = Scalar::all(0);
 
 
                 // automatic initialization
-                goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
+                goodFeaturesToTrack(crop, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
                 cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
                 addRemovePt = false;
 
