@@ -303,7 +303,9 @@ int main(int arg_num, char *arg_vec[]) {
                 if( !status[i] )
                     continue;
                 points[1][k++] = points[1][i];
-                circle( img, points[1][i], 3, Scalar(0,255,0), -1, 8);
+                Point a(Faces_x, Faces_y);
+                Point2f pt = a;
+                circle(img, points[1][i]+pt, 3, Scalar(0,255,0), -1, 8);
             }
             points[1].resize(k);
         }
