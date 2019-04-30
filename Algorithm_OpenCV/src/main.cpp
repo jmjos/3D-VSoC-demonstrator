@@ -25,14 +25,14 @@ using namespace cv;
 
 //number of images in folder ../RAWImages/...
 const int number_images = 506; //8 oder 28 oder 506
-const int first_image = 449; //0 oder 48 oder 449
-const int second_image = 450; //1 oder 49 oder 450
+const int first_image = 10; //0 oder 48 oder 449 oder 10
+//const int second_image = 11; //1 oder 49 oder 450
 const int detection_loop = 50;
 const int MAX_COUNT = 100;
 
 //const string path_key[2] = {"/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages/example_",".dng"};
-//const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/1/filename000",".png"}; //zweistellige Zahlen
-const string path_key[] = {"/home/mtzschoppe/Desktop/face images/2/filename00",".png"}; //dreistellige Zahlen
+const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/3/filename000",".png"}; //zweistellige Zahlen
+//const string path_key[] = {"/home/mtzschoppe/Desktop/face images/2/filename00",".png"}; //dreistellige Zahlen
 
 //const string WindowName = "Face Detection example";
 
@@ -130,7 +130,10 @@ int main(int arg_num, char *arg_vec[]) {
     setMouseCallback( "LK Demo", onMouse, 0 );
     Mat gray, prevGray, frame;
     vector<Point2f> points[2];
-    int Faces_height,Faces_width,Faces_x,Faces_y;
+    int* Faces_height;
+    int* Faces_width;
+    int* Faces_x;
+    int* Faces_y;
     Mat img, imga;
     /*
     if( !cap.isOpened() )
@@ -192,13 +195,6 @@ int main(int arg_num, char *arg_vec[]) {
                 rectangle(img, Faces[i], Scalar(255,255,0));
             }
 
-            if (Faces.size() != 0) {
-                Faces_height=Faces[0].height;
-                Faces_width =Faces[0].width;
-                Faces_x =Faces[0].x;
-                Faces_y =Faces[0].y;
-            }
-
         }
         if (Faces.size() == 0) {
             detect_img++;
@@ -212,14 +208,28 @@ int main(int arg_num, char *arg_vec[]) {
     if (Faces.size() == 0) {
         cerr << "Cannot detect face" << endl;
     } else {
-        cout << "Eckdaten:\n" << Faces_height << "\t" << Faces_width << "\n" << Faces_x << "\t" << Faces_y << endl;
-        cout << "detect_img: " << detect_img << endl;
+        Faces_width = new int [Faces.size()] ();
+        Faces_height = new int [Faces.size()] ();
+        Faces_x = new int [Faces.size()] ();
+        Faces_y = new int [Faces.size()] ();
+
+        cout << "faces detected: " << Faces.size()  << endl;
+
+        for (int p=0; p<Faces.size(); p++) {
+            Faces_height[p] = Faces[p].height;
+            Faces_width[p] = Faces[p].width;
+            Faces_x[p] = Faces[p].x;
+            Faces_y[p] = Faces[p].y;
+            cout << "face " << p+1 << " data:\nheight: " << Faces_height[p] << "\twidth: " << Faces_width[p] << "\n x: " << Faces_x[p] << "\ty: " << Faces_y[p] << endl;
+        }
+
+        cout << "image detected: " << detect_img << endl;
+        cout << "image size: " << img.size() << endl;
         imshow("LK Demo", img);
         waitKey(0);
     }
 
-    int m = detect_img + 449;
-    cout << "image size: " << img.size() << endl;
+    int m = detect_img + first_image;
 
     for(;;)
     {
@@ -265,18 +275,23 @@ int main(int arg_num, char *arg_vec[]) {
         //TODO tracking:
         cvtColor(img, gray, COLOR_BGR2GRAY);
 
+        /*
         if( nightMode ) {
             img = Scalar::all(0);
-        }
+        }*/
         //Mat a(Faces_x, Faces_y);
 
-        Mat mask = Mat::zeros(img.size(), CV_8UC1);
-        Mat roi(mask, cv::Rect(Faces_x, Faces_y, Faces_width, Faces_height));
-        roi = Scalar(255);
-        // automatic initialization
-        goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, mask, 3, 3, 0, 0.04);
-        cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
-        addRemovePt = false;
+        //for(int q=0; q<Faces.size(); q++) {
+            Mat mask = Mat::zeros(img.size(), CV_8UC1);
+            Mat roi(mask, cv::Rect(Faces_x[0], Faces_y[0], Faces_width[0], Faces_height[0]));
+            roi = Scalar(255);
+            // automatic initialization
+            goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, mask, 3, 3, 0, 0.04);
+            cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
+            addRemovePt = false;
+
+
+        //}
 
         if( !points[0].empty() )
         {
@@ -312,6 +327,8 @@ int main(int arg_num, char *arg_vec[]) {
             points[1].push_back(tmp[0]);
             addRemovePt = false;
         }
+
+
         imshow("LK Demo", img);
         char c = (char)waitKey(50);
         if( c == 27 ) {
