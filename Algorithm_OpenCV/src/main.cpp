@@ -176,8 +176,7 @@ int main(int arg_num, char *arg_vec[]) {
 
 
 
-        imga = imread(file,1);
-        imga.copyTo(img);
+        img = imread(file,1);
         //TODO read image end
 
         //convert from 16 bit to 8 bit
@@ -220,6 +219,7 @@ int main(int arg_num, char *arg_vec[]) {
     }
 
     int m = detect_img + 449;
+    cout << "image size: " << img.size() << endl;
 
     for(;;)
     {
@@ -256,30 +256,26 @@ int main(int arg_num, char *arg_vec[]) {
         //TODO LibRaw end
         */
 
-        imga = imread(file,1);
-        imga.copyTo(img);
+        img = imread(file,1);
 
         //convert from 16 bit to 8 bit
-        //img.convertTo(img, CV_8UC1, 1/256.0);
+        //img.convertTo(img, CV_8UC1, 1/256.0); //can't use for png
         //TODO read image end
 
         //TODO tracking:
         cvtColor(img, gray, COLOR_BGR2GRAY);
 
-        //TODO crop face
-        Mat image_2 = gray;
-        Mat crop = image_2(Rect(Faces_x, Faces_y, Faces_height, Faces_width));
-        //imshow("LK Demo", crop);
-        //waitKey(0);
-        //TODO crop face end
-
         if( nightMode ) {
             img = Scalar::all(0);
         }
+        //Mat a(Faces_x, Faces_y);
 
+        Mat mask = Mat::zeros(img.size(), CV_8UC1);
+        Mat roi(mask, cv::Rect(Faces_x, Faces_y, Faces_width, Faces_height));
+        roi = Scalar(255);
         // automatic initialization
-        goodFeaturesToTrack(crop, points[1], MAX_COUNT, 0.01, 10, Mat(), 3, 3, 0, 0.04);
-        cornerSubPix(crop, points[1], subPixWinSize, Size(-1,-1), termcrit);
+        goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, mask, 3, 3, 0, 0.04);
+        cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
         addRemovePt = false;
 
         if( !points[0].empty() )
@@ -287,8 +283,8 @@ int main(int arg_num, char *arg_vec[]) {
             vector<uchar> status;
             vector<float> err;
             if(prevGray.empty())
-                crop.copyTo(prevGray);
-            calcOpticalFlowPyrLK(prevGray, crop, points[0], points[1], status, err, winSize, 3, termcrit, 0, 0.001);
+                gray.copyTo(prevGray);
+            calcOpticalFlowPyrLK(prevGray, gray, points[0], points[1], status, err, winSize, 3, termcrit, 0, 0.001);
             size_t i, k;
             for( i = k = 0; i < points[1].size(); i++ )
             {
@@ -303,9 +299,8 @@ int main(int arg_num, char *arg_vec[]) {
                 if( !status[i] )
                     continue;
                 points[1][k++] = points[1][i];
-                Point a(Faces_x, Faces_y);
-                Point2f pt = a;
-                circle(img, points[1][i]+pt, 3, Scalar(0,255,0), -1, 8);
+                //Point2f a(Faces_x, Faces_y);
+                circle(img, points[1][i], 3, Scalar(0,255,0), -1, 8);
             }
             points[1].resize(k);
         }
@@ -313,7 +308,7 @@ int main(int arg_num, char *arg_vec[]) {
         {
             vector<Point2f> tmp;
             tmp.push_back(point);
-            cornerSubPix( crop, tmp, winSize, Size(-1,-1), termcrit);
+            cornerSubPix(gray, tmp, winSize, Size(-1,-1), termcrit);
             points[1].push_back(tmp[0]);
             addRemovePt = false;
         }
@@ -333,7 +328,7 @@ int main(int arg_num, char *arg_vec[]) {
                 break;
         }
         std::swap(points[1], points[0]);
-        cv::swap(prevGray, crop);
+        cv::swap(prevGray, gray);
 
         if (m >  number_images) {
             break;
