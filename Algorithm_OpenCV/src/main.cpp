@@ -129,7 +129,7 @@ int main(int arg_num, char *arg_vec[]) {
     namedWindow("LK Demo", cv::WINDOW_NORMAL);
     setMouseCallback( "LK Demo", onMouse, 0 );
     Mat gray, prevGray, frame;
-    vector<Point2f> points[2];
+    //vector<Point2f> points[2];
     int* Faces_height;
     int* Faces_width;
     int* Faces_x;
@@ -230,6 +230,9 @@ int main(int arg_num, char *arg_vec[]) {
     }
 
     int m = detect_img + first_image;
+    char c;
+
+    vector<Point2f> points[Faces.size()*2];
 
     for(;;)
     {
@@ -281,73 +284,88 @@ int main(int arg_num, char *arg_vec[]) {
         }*/
         //Mat a(Faces_x, Faces_y);
 
-        //for(int q=0; q<Faces.size(); q++) {
+
+
+        for(int q=0; q<(Faces.size()); q++) {
+            cout << "q = " << q << endl;
             Mat mask = Mat::zeros(img.size(), CV_8UC1);
-            Mat roi(mask, cv::Rect(Faces_x[0], Faces_y[0], Faces_width[0], Faces_height[0]));
-            roi = Scalar(255);
+            Mat roi(mask, cv::Rect(Faces_x[q], Faces_y[q], Faces_width[q], Faces_height[q]));
+            roi = Scalar(255, 255, 255);
+            cout << "ROI: " << roi.size() << endl;
+            cout << "Mask: " << mask.size() << endl;
+            cout << "Faces: " << Faces_x[q] << endl;
             // automatic initialization
-            goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.01, 10, mask, 3, 3, 0, 0.04);
-            cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
+            goodFeaturesToTrack(gray, points[q * 2 + 1], MAX_COUNT, 0.01, 10, mask, 3, 3, 0, 0.04);
+            cornerSubPix(gray, points[q * 2 + 1], subPixWinSize, Size(-1, -1), termcrit);
             addRemovePt = false;
 
+            //cout << points[q*2+1] << endl;
+            cout << "points0: " << points[0] << endl;
+            cout << "points1: " << points[1] << endl;
+            //cout << "points2: " << points[2] << endl;
+            //cout << "points3: " << points[3] << endl;
 
-        //}
+            cout << "q = " << q << endl;
 
-        if( !points[0].empty() )
-        {
-            vector<uchar> status;
-            vector<float> err;
-            if(prevGray.empty())
-                gray.copyTo(prevGray);
-            calcOpticalFlowPyrLK(prevGray, gray, points[0], points[1], status, err, winSize, 3, termcrit, 0, 0.001);
-            size_t i, k;
-            for( i = k = 0; i < points[1].size(); i++ )
-            {
-                if( addRemovePt )
-                {
-                    if( norm(point - points[1][i]) <= 5 )
-                    {
-                        addRemovePt = false;
-                        continue;
+
+            if (!points[q * 2].empty()) {
+                vector<uchar> status;
+                vector<float> err;
+                if (prevGray.empty())
+                    gray.copyTo(prevGray);
+                calcOpticalFlowPyrLK(prevGray, gray, points[q * 2], points[q * 2 + 1], status, err, winSize, 3,
+                                     termcrit, 0, 0.001);
+                size_t i, k;
+                for (i = k = 0; i < points[q * 2 + 1].size(); i++) {
+                    if (addRemovePt) {
+                        if (norm(point - points[q * 2 + 1][i]) <= 5) {
+                            addRemovePt = false;
+                            continue;
+                        }
                     }
+                    if (!status[i])
+                        continue;
+                    points[q * 2 + 1][k++] = points[q * 2 + 1][i];
+                    //Point2f a(Faces_x, Faces_y);
+                    circle(img, points[q * 2+1][i], 3, Scalar(0, 255, 0), -1, 8);
+                    //if (m > (detect_img + first_image +4) && q == 0) {
+                    //    circle(img, points[q * 2+3][i], 3, Scalar(0, 255, 0), -1, 8);
+                    //}
                 }
-                if( !status[i] )
-                    continue;
-                points[1][k++] = points[1][i];
-                //Point2f a(Faces_x, Faces_y);
-                circle(img, points[1][i], 3, Scalar(0,255,0), -1, 8);
+                points[q * 2 + 1].resize(k);
+
             }
-            points[1].resize(k);
-        }
-        if( addRemovePt && points[1].size() < (size_t)MAX_COUNT )
-        {
-            vector<Point2f> tmp;
-            tmp.push_back(point);
-            cornerSubPix(gray, tmp, winSize, Size(-1,-1), termcrit);
-            points[1].push_back(tmp[0]);
-            addRemovePt = false;
-        }
+            if (addRemovePt && points[q * 2 + 1].size() < (size_t) MAX_COUNT) {
+                vector<Point2f> tmp;
+                tmp.push_back(point);
+                cornerSubPix(gray, tmp, winSize, Size(-1, -1), termcrit);
+                points[q * 2 + 1].push_back(tmp[0]);
+                addRemovePt = false;
+            }
 
 
-        imshow("LK Demo", img);
-        char c = (char)waitKey(50);
-        if( c == 27 ) {
-            break;
+            imshow("LK Demo", img);
+            c = (char) waitKey(15);
+
         }
-        switch( c )
-        {
-            case 'c':
-                points[0].clear();
-                points[1].clear();
+            if (c == 27) {
                 break;
-            case 'n':
-                nightMode = !nightMode;
-                break;
-        }
-        std::swap(points[1], points[0]);
-        cv::swap(prevGray, gray);
+            }
+            switch (c) {
+                case 'c':
+                    points[0].clear();
+                    points[1].clear();
+                    break;
+                case 'n':
+                    nightMode = !nightMode;
+                    break;
+            }
+            for (int i=0; i<Faces.size(); i++) {
+                std::swap(points[i*2 +1], points[i*2]);
+            }
+            cv::swap(prevGray, gray);
 
-        if (m >  number_images) {
+        if (m > number_images) {
             break;
         }
         m++;
