@@ -24,7 +24,7 @@ using namespace std;
 using namespace cv;
 
 //number of images in folder ../RAWImages/...
-const int number_images = 506; //8 oder 28 oder 506
+const int number_images = 98; //8 oder 28 oder 506
 const int first_image = 10; //0 oder 48 oder 449 oder 10
 //const int second_image = 11; //1 oder 49 oder 450
 const int detection_loop = 50;
@@ -276,6 +276,7 @@ int main(int arg_num, char *arg_vec[]) {
         //TODO read image end
 
         //TODO tracking:
+        cout << file << endl;
         cvtColor(img, gray, COLOR_BGR2GRAY);
 
         /*
