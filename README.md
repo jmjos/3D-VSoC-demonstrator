@@ -25,3 +25,11 @@ use cmake.
 Dependencies on Ubunutu 18.04LTS: libraw-dev and libopencv-dev
 
 Warning: Incopatabiliy with systemc. Therefore, patch systemc.h by commeting using sc_dt::unit64; and using sc_dt::int64;
+
+#### Install libraw. 
+
+Download from website, ./configure, make -j, sudo make install
+
+#### Install OpenCV
+
+
