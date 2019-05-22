@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <ctype.h>
 #include <string>
+#include <factory.h>
+#include <structures.h>
 
 #include "libraw/libraw.h"
 #include <opencv2/opencv.hpp>
