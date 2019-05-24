@@ -26,7 +26,6 @@
 using namespace std;
 using namespace cv;
 
-
 const int detection_loop = 100;//how often
 const int MAX_COUNT = 100;
 const int max_img = 100;
@@ -338,4 +337,26 @@ int main(int arg_num, char *arg_vec[]) {
     iProcessor.recycle();
 
     return 0;
+}
+
+PacketFactory& PacketFactory::getInstance()
+{
+    static PacketFactory instance;
+    return instance;
+}
+
+Packet* PacketFactory::createPacket(id_t id)
+{
+    /*
+    auto p = new Packet(id);
+    packets.push_back(p);
+    return p;
+     */
+}
+
+void PacketFactory::deletePacket(Packet* p)
+{
+    auto it = std::find(packets.begin(), packets.end(), p);
+    delete(*it);
+    packets.erase(it);
 }

@@ -5,20 +5,17 @@
 #ifndef RAWTOCV_FACTORY_H
 #define RAWTOCV_FACTORY_H
 
-//singleton
-/*
-#pragma once
+//#pragma once
 
 #include <vector>
-#include <model/traffic/Packet.h>
+#include <structures.h>
 
 class PacketFactory {
 public:
     std::vector<Packet*> packets;
     static PacketFactory& getInstance();
-    Packet* createPacket(Node& src, Node& dst, int size, double generationTime, dataTypeID_t dataType);
+    Packet* createPacket(id_t id);
     void deletePacket(Packet* p);
 };
- */
 
 #endif //RAWTOCV_FACTORY_H
