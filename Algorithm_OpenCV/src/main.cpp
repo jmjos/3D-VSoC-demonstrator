@@ -37,28 +37,7 @@ const int min_points = 35;
 //const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/3/filename000",".png"}; //zweistellige Zahlen
 const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/4/filename00",".png"}; //dreistellige Zahlen
 
-class CascadeDetectorAdapter: public DetectionBasedTracker::IDetector
-{
-public:
-    CascadeDetectorAdapter(cv::Ptr<cv::CascadeClassifier> detector):
-            IDetector(),
-            Detector(detector)
-    {
-        CV_Assert(detector);
-    }
-
-    void detect(const cv::Mat &Image, std::vector<cv::Rect> &objects) CV_OVERRIDE
-    {
-        Detector->detectMultiScale(Image, objects, scaleFactor, minNeighbours, 0, minObjSize, maxObjSize);
-    }
-
-    virtual ~CascadeDetectorAdapter() CV_OVERRIDE
-    {}
-
-private:
-    CascadeDetectorAdapter();
-    cv::Ptr<cv::CascadeClassifier> Detector;
-};
+void divisor (int n, int a[]);
 
 int main(int arg_num, char *arg_vec[]) {
     //variable for image read
@@ -102,6 +81,15 @@ int main(int arg_num, char *arg_vec[]) {
         r++;
     }
     number_images=vec_string.size() - 3 + first_image;
+
+    int agb = 12;
+    int ahg[100];
+
+    divisor(agb, ahg);
+    for (int ig=0; ig < agb; ig++) {
+        cout << ahg[ig];
+    }
+    cout << endl;
 
     std::string cascadeFrontalfilename = samples::findFile("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
 
@@ -366,4 +354,17 @@ ADC& ADC::getInstance()
 {
     static ADC instance;
     return instance;
+}
+
+void divisor (int n, int a[]) {
+    int j=0;
+    /*
+    for (int i=0; i<(n/2); i++) {
+        if (n % i == 0) {
+            a[j] = i;
+            j++;
+        }
+    }
+     */
+    a[0] = 4;
 }
