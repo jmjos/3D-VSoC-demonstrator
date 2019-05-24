@@ -8,6 +8,7 @@
 #include <string>
 #include <factory.h>
 #include <structures.h>
+#include <config.h>
 
 #include "libraw/libraw.h"
 #include <opencv2/opencv.hpp>
@@ -359,4 +360,10 @@ void PacketFactory::deletePacket(Packet* p)
     auto it = std::find(packets.begin(), packets.end(), p);
     delete(*it);
     packets.erase(it);
+}
+
+ADC& ADC::getInstance()
+{
+    static ADC instance;
+    return instance;
 }
