@@ -9,6 +9,8 @@
 #include <factory.h>
 #include <structures.h>
 #include <config.h>
+#include <detection.h>
+#include <math.h>
 
 #include "libraw/libraw.h"
 #include <opencv2/opencv.hpp>
@@ -37,8 +39,6 @@ const int min_points = 35;
 //const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/3/filename000",".png"}; //zweistellige Zahlen
 const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/4/filename00",".png"}; //dreistellige Zahlen
 
-void divisor (int n, int a[]);
-
 int main(int arg_num, char *arg_vec[]) {
     //variable for image read
     unsigned long number_images; //8 oder 28 oder 506
@@ -53,7 +53,7 @@ int main(int arg_num, char *arg_vec[]) {
     //intialization for tracking
     TermCriteria termcrit(TermCriteria::COUNT|TermCriteria::EPS,20,0.03);
     Size subPixWinSize(10,10), winSize(31,31);
-    Mat gray, prevGray, img;
+    Mat gray, prevGray, img, grey_b;
     int* Faces_height;
     int* Faces_width;
     int* Faces_x;
@@ -81,15 +81,6 @@ int main(int arg_num, char *arg_vec[]) {
         r++;
     }
     number_images=vec_string.size() - 3 + first_image;
-
-    int agb = 12;
-    int ahg[100];
-
-    divisor(agb, ahg);
-    for (int ig=0; ig < agb; ig++) {
-        cout << ahg[ig];
-    }
-    cout << endl;
 
     std::string cascadeFrontalfilename = samples::findFile("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
 
@@ -120,6 +111,10 @@ int main(int arg_num, char *arg_vec[]) {
         return 2;
     }
 
+    int img_x, img_y;
+    Mat ADCs [ADC::nb_ADCs_x][ADC::nb_ADCs_y];
+    Mat CPUs [ADC::nb_CPUs_x][ADC::nb_CPUs_y];
+
     do {
         vector<Rect> Faces;
         facepoints = 0;
@@ -141,6 +136,32 @@ int main(int arg_num, char *arg_vec[]) {
             file = path_key[0] + string_k + path_key[1];
 
             img = imread(file,1);
+
+            img_x = img.size().width;
+            img_y = img.size().height;
+
+            //divide imgage to ADCs
+            for (int i=0; i<ADC::nb_ADCs_x; i++) {
+                for (int j=0; j<ADC::nb_ADCs_y; j++) {
+                    cv::Mat crop = img(Rect(i * ceil(img_x / ADC::nb_ADCs_x), j * ceil(img_y / ADC::nb_ADCs_y),
+                            ceil(img_x / ADC::nb_ADCs_x), ceil(img_y / ADC::nb_ADCs_y)));
+                    ADCs [i][j] = crop;
+                }
+            }
+
+            //divide imgage to CPUs
+            for (int i=0; i<ADC::nb_CPUs_x; i++) {
+                for (int j=0; j<ADC::nb_CPUs_y; j++) {
+                    cv::Mat crop = img(Rect(i * ceil(img_x / ADC::nb_CPUs_x), j * ceil(img_y / ADC::nb_CPUs_y),
+                                            ceil(img_x / ADC::nb_CPUs_x), ceil(img_y / ADC::nb_CPUs_y)));
+                    CPUs [i][j] = crop;
+                }
+            }
+
+            imshow("LK Demo", ADCs [1][3]);
+            waitKey(0);
+            imshow("LK Demo", CPUs [1][0]);
+            waitKey(0);
 
             /*
             //TODO LibRaw
@@ -354,17 +375,4 @@ ADC& ADC::getInstance()
 {
     static ADC instance;
     return instance;
-}
-
-void divisor (int n, int a[]) {
-    int j=0;
-    /*
-    for (int i=0; i<(n/2); i++) {
-        if (n % i == 0) {
-            a[j] = i;
-            j++;
-        }
-    }
-     */
-    a[0] = 4;
 }

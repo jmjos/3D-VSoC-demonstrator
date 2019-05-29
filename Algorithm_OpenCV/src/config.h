@@ -5,37 +5,18 @@
 #ifndef RAWTOCV_CONFIG_H
 #define RAWTOCV_CONFIG_H
 
-#include <opencv2/objdetect.hpp>
-
 // Sensor -> n ADC's -> crop image in n rows and m columns
 class ADC {
 public:
     static ADC& getInstance();
-    int nb_ADCs_x;
-    int nb_ADCs_y;
-};
+    static const int nb_ADCs_x = 3;
+    static const int nb_ADCs_y = 4;
+    static const int nb_CPUs_x = 2;
+    static const int nb_CPUs_y = 1;
 
-class CascadeDetectorAdapter: public cv::DetectionBasedTracker::IDetector
-{
-public:
-    CascadeDetectorAdapter(cv::Ptr<cv::CascadeClassifier> detector):
-            IDetector(),
-            Detector(detector)
-    {
-        CV_Assert(detector);
-    }
-
-    void detect(const cv::Mat &Image, std::vector<cv::Rect> &objects) CV_OVERRIDE
-    {
-        Detector->detectMultiScale(Image, objects, scaleFactor, minNeighbours, 0, minObjSize, maxObjSize);
-    }
-
-    virtual ~CascadeDetectorAdapter() CV_OVERRIDE
-    {}
-
-private:
-    CascadeDetectorAdapter();
-    cv::Ptr<cv::CascadeClassifier> Detector;
+    //maximum object size for Vioala-Jones algorith
+    //link: detection_based_tracker.hpp -> IDetector::maxObjSize(INT_MAX, INT_MAX)
+    static const int MAX_OBJECT_SIZE = 100;
 };
 
 #endif //RAWTOCV_CONFIG_H
