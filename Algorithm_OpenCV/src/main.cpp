@@ -355,7 +355,7 @@ PacketFactory& PacketFactory::getInstance()
     return instance;
 }
 
-Packet* PacketFactory::createPacket(id_t id)
+nt_packet_t* PacketFactory::createPacket(id_t id)
 {
     /*
     auto p = new Packet(id);
@@ -364,7 +364,7 @@ Packet* PacketFactory::createPacket(id_t id)
      */
 }
 
-void PacketFactory::deletePacket(Packet* p)
+void PacketFactory::deletePacket(nt_packet_t* p)
 {
     auto it = std::find(packets.begin(), packets.end(), p);
     delete(*it);
