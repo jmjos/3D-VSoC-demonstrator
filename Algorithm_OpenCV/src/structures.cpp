@@ -17,14 +17,12 @@ std::ostream& operator<<(std::ostream& os, const nt_packet_t& p)
     return os;
 }
 
-std::ostream& operator==(std::ostream& os, const nt_packet_t& p)
+bool operator==(const nt_packet_t& p1, const nt_packet_t& p2)
 {
-    os << "ID: " << p.id << ", SRC: " << p.addr_src << ", DST: " << p.dst<< std::endl;
-    return os;
+    return (p1.id == p2.id);
 }
 
-std::ostream& operator!=(std::ostream& os, const nt_packet_t& p)
+bool operator!=(const nt_packet_t& p3, const nt_packet_t& p4)
 {
-    os << "ID: " << p.id << ", SRC: " << p.addr_src << ", DST: " << p.dst<< std::endl;
-    return os;
+    return !(p3.id == p4.id);
 }

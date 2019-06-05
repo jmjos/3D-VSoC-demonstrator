@@ -31,7 +31,8 @@ struct nt_packet_t {
     nt_packet_t(id_t& id);
 
     friend std::ostream & operator <<(std::ostream & os, const nt_packet_t& p);
-
+    friend bool operator==(const nt_packet_t& p1, const nt_packet_t& p2);
+    friend bool operator!=(const nt_packet_t& p3, const nt_packet_t& p4);
 
 };
 
