@@ -12,7 +12,7 @@ public:
     static const int nb_ADCs_x = 3;
     static const int nb_ADCs_y = 4;
     static const int nb_CPUs_x = 2;
-    static const int nb_CPUs_y = 1;
+    static const int nb_CPUs_y = 2;
 
     //maximum object size for Vioala-Jones algorith
     //link: detection_based_tracker.hpp -> IDetector::maxObjSize(INT_MAX, INT_MAX)
