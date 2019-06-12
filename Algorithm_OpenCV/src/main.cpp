@@ -35,7 +35,8 @@ const int max_img = 100;
 const int min_points = 35;
 
 //path to images
-//const string path_key[2] = {"/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages/example_",".dng"};
+//const string path_key[2] = {"/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/RAWImages"
+//                            "/example_",".dng"};
 //const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/3/filename000",".png"}; //zweistellige Zahlen
 const string path_key[2] = {"/home/mtzschoppe/Desktop/face images/4/filename00",".png"}; //dreistellige Zahlen
 
@@ -82,7 +83,9 @@ int main(int arg_num, char *arg_vec[]) {
     }
     number_images=vec_string.size() - 3 + first_image;
 
-    std::string cascadeFrontalfilename = samples::findFile("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/opencv/opencv/data/lbpcascades/lbpcascade_frontalface.xml");
+    std::string cascadeFrontalfilename = samples::findFile("/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator"
+                                                           "/Algorithm_OpenCV/opencv/opencv/data/lbpcascades"
+                                                           "/lbpcascade_frontalface.xml");
 
     cv::Ptr<cv::CascadeClassifier> cascade = makePtr<cv::CascadeClassifier>(cascadeFrontalfilename);
     cv::Ptr<DetectionBasedTracker::IDetector> MainDetector = makePtr<CascadeDetectorAdapter>(cascade);
@@ -112,8 +115,11 @@ int main(int arg_num, char *arg_vec[]) {
     }
 
     int img_x, img_y;
-    Mat ADCs [ADC::nb_ADCs_x][ADC::nb_ADCs_y];
-    Mat CPUs [ADC::nb_CPUs_x][ADC::nb_CPUs_y];
+    Mat ADCs_crop [ADC::nb_ADCs_x][ADC::nb_ADCs_y];
+    Mat CPUs_crop [ADC::nb_CPUs_x][ADC::nb_CPUs_y];
+    Point2i pts;
+    vector<Point2i> CPU_points_begin [ADC::nb_CPUs_x * ADC::nb_CPUs_y];
+    vector<Point2i> CPU_width_height [ADC::nb_CPUs_x * ADC::nb_CPUs_y];
 
     do {
         vector<Rect> Faces;
@@ -137,30 +143,41 @@ int main(int arg_num, char *arg_vec[]) {
 
             img = imread(file,1);
 
+            cout << "image size: " << img.size() << endl;
+
             img_x = img.size().width;
             img_y = img.size().height;
-
-            //divide imgage to ADCs
-            for (int i=0; i<ADC::nb_ADCs_x; i++) {
-                for (int j=0; j<ADC::nb_ADCs_y; j++) {
-                    cv::Mat crop = img(Rect(i * ceil(img_x / ADC::nb_ADCs_x), j * ceil(img_y / ADC::nb_ADCs_y),
-                            ceil(img_x / ADC::nb_ADCs_x), ceil(img_y / ADC::nb_ADCs_y)));
-                    ADCs [i][j] = crop;
-                }
-            }
 
             //divide imgage to CPUs
             for (int i=0; i<ADC::nb_CPUs_x; i++) {
                 for (int j=0; j<ADC::nb_CPUs_y; j++) {
                     cv::Mat crop = img(Rect(i * ceil(img_x / ADC::nb_CPUs_x), j * ceil(img_y / ADC::nb_CPUs_y),
-                                            ceil(img_x / ADC::nb_CPUs_x), ceil(img_y / ADC::nb_CPUs_y)));
-                    CPUs [i][j] = crop;
+                            ceil(img_x / ADC::nb_CPUs_x), ceil(img_y / ADC::nb_CPUs_y))); //ceil(x) = roundup
+                    CPUs_crop [i][j] = crop;
+                    pts = Point2i(i * ceil(img_x / ADC::nb_CPUs_x), j * ceil(img_y / ADC::nb_CPUs_y));
+                    CPU_points_begin[i*ADC::nb_CPUs_y+j].push_back(pts);
+                    pts = Point2i(ceil(img_x / ADC::nb_CPUs_x), ceil(img_y / ADC::nb_CPUs_y));
+                    CPU_width_height[i*ADC::nb_CPUs_y+j].push_back(pts);
+                    cout << "x coordinate: " << CPU_points_begin[i*ADC::nb_CPUs_y+j].data()->x << "\ny coordinate: " << CPU_points_begin[i*ADC::nb_CPUs_y+j].data()->y << endl;
+                    cout << "width: " << CPU_width_height[i*ADC::nb_CPUs_y+j].data()->x << "\nheight: " << CPU_width_height[i*ADC::nb_CPUs_y+j].data()->y << endl;
                 }
             }
 
-            imshow("LK Demo", ADCs [1][3]);
+            //divide imgage to ADCs
+            for (int i=0; i<ADC::nb_ADCs_x; i++) {
+                for (int j=0; j<ADC::nb_ADCs_y; j++) {
+                    cv::Mat crop = img(Rect(i * ceil(img_x / ADC::nb_ADCs_x), j * ceil(img_y / ADC::nb_ADCs_y),
+                            ceil(img_x / ADC::nb_ADCs_x), ceil(img_y / ADC::nb_ADCs_y))); //ceil(x) = roundup
+                    ADCs_crop [i][j] = crop;
+                    cout << "x coordinate: " << CPU_points_begin[i*ADC::nb_CPUs_y+j].data()->x << "\ny coordinate: " << CPU_points_begin[i*ADC::nb_CPUs_y+j].data()->y << endl;
+
+                    if ()
+                }
+            }
+
+            imshow("LK Demo", ADCs_crop [1][3]);
             waitKey(0);
-            imshow("LK Demo", CPUs [1][0]);
+            imshow("LK Demo", CPUs_crop [1][0]);
             waitKey(0);
 
             /*
