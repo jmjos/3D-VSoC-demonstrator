@@ -13,7 +13,8 @@ INCLUDE_DIRECTORIES(./src)
 
 ADD_EXECUTABLE(${PROJECT_NAME} src/structures.h src/structures.cpp src/main.cpp)
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} boost_serialization)
 
 #find_package( OpenCV REQUIRED )
+find_package(Boost 1.55 REQUIRED system serialization)
 #include_directories( ${OpenCV_INCLUDE_DIRS} )
