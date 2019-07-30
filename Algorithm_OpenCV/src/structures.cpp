@@ -4,25 +4,25 @@
 
 #include "structures.h"
 
-long long nt_packet_t::idcnt = 0;
+id_type Packet::idcnt = 0;
 
-nt_packet_t::nt_packet_t(id_t& id){
+Packet::Packet(){
     this->id = idcnt;
     ++idcnt;
 }
 
-std::ostream& operator<<(std::ostream& os, const nt_packet_t& p)
+std::ostream& operator<<(std::ostream& os, const Packet& p)
 {
     os << "ID: " << p.id << ", SRC: " << p.addr_src << ", DST: " << p.dst<< std::endl;
     return os;
 }
 
-bool operator==(const nt_packet_t& p1, const nt_packet_t& p2)
+bool operator==(const Packet& p1, const Packet& p2)
 {
     return (p1.id == p2.id);
 }
 
-bool operator!=(const nt_packet_t& p3, const nt_packet_t& p4)
+bool operator!=(const Packet& p1, const Packet& p2)
 {
-    return !(p3.id == p4.id);
+    return !(p1.id == p2.id);
 }

@@ -62,6 +62,37 @@ int main(int arg_num, char *arg_vec[]) {
     int facepoints;
     bool tracking_end = false;
 
+    Packet p2;
+    Packet p3;
+    Packet p4;
+    Packet p1;
+    p1.addr_src = 100;
+    p1.dst = 99;
+    p1.data.emplace_back(0b11);
+    std::cout << p1 << std::endl;
+    for (auto i : p1.data){
+        std::cout << i << std::endl;
+    }
+
+    std::ofstream ofs("filename");
+    {
+        boost::archive::text_oarchive oa(ofs);
+        oa << p1;
+    }
+
+    Packet newP;
+    {
+        std::ifstream ifs("filename");
+        boost::archive::text_iarchive ia(ifs);
+        ia >> newP;
+    }
+
+    std::cout << newP << std::endl;
+
+    for (auto i : newP.data){
+        std::cout << i << std::endl;
+    }
+
     //get maximum of images to read
     vector<string> vec_string;
     int r=0;
@@ -431,7 +462,7 @@ PacketFactory& PacketFactory::getInstance()
     return instance;
 }
 
-nt_packet_t* PacketFactory::createPacket(id_t id)
+Packet* PacketFactory::createPacket(id_t id)
 {
     /*
     auto p = new Packet(id);
@@ -440,7 +471,7 @@ nt_packet_t* PacketFactory::createPacket(id_t id)
      */
 }
 
-void PacketFactory::deletePacket(nt_packet_t* p)
+void PacketFactory::deletePacket(Packet* p)
 {
     auto it = std::find(packets.begin(), packets.end(), p);
     delete(*it);

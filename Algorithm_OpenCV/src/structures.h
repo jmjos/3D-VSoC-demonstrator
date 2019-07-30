@@ -11,29 +11,58 @@
 #include <queue>
 #include <set>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
-struct nt_packet_t {
-    typedef int addr_t;
-    typedef int node_t;
-    typedef int data_t;
-    typedef long long id_t;
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
 
-    static id_t id;
-    static id_t idcnt;
-    long long cyck;
-    data_t Datatyp;
-    addr_t addr_src;
-    addr_t dst;
-    node_t node_type;
-    int num_deps;
+typedef int addr_t;
+typedef int node_t;
+typedef int data_t;
+typedef long long id_type;
+
+class Packet {
+private:
+    static id_type idcnt;
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & id;
+        ar & cyck;
+        ar & datatyp;
+        ar & addr_src;
+        ar & dst;
+        ar & node_type;
+        ar & num_deps;
+        ar & deps;
+        ar & data;
+    }
+
+public:
+    id_type id = 0;
+    long long cyck = 0;
+    data_t datatyp = 0;
+    addr_t addr_src = 0;
+    addr_t dst = 0;
+    node_t node_type = 0;
+    int num_deps = 0;
     std::vector<id_t> deps;
+    std::vector<char> data;
 
-    nt_packet_t(id_t& id);
+    Packet();
 
-    friend std::ostream & operator <<(std::ostream & os, const nt_packet_t& p);
-    friend bool operator==(const nt_packet_t& p1, const nt_packet_t& p2);
-    friend bool operator!=(const nt_packet_t& p3, const nt_packet_t& p4);
-
+    friend std::ostream & operator <<(std::ostream & os, const Packet& p);
+    friend bool operator==(const Packet& p1, const Packet& p2);
+    friend bool operator!=(const Packet& p1, const Packet& p2);
 };
+
+// How to serialize:
+//https://isocpp.org/wiki/faq/serialization#serialize-no-inherit-no-ptrs
+//How do I serialize objects that contain pointers to other objects, but those pointers form a tree with no cycles and no joins?
+
 
 #endif //RAWTOCV_STRUCTURES_H

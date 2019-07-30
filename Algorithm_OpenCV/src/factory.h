@@ -12,10 +12,10 @@
 
 class PacketFactory {
 public:
-    std::vector<nt_packet_t*> packets;
+    std::vector<Packet*> packets;
     static PacketFactory& getInstance();
-    nt_packet_t* createPacket(id_t id);
-    void deletePacket(nt_packet_t* p);
+    Packet* createPacket(id_t id);
+    void deletePacket(Packet* p);
 };
 
 #endif //RAWTOCV_FACTORY_H

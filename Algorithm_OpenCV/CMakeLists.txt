@@ -11,9 +11,11 @@ LINK_DIRECTORIES(${CMAKE_PREFIX_PATH}/lib-linux64)
 
 ADD_DEFINITIONS(-D SC_INCLUDE_DYNAMIC_PROCESSES)
 
-ADD_EXECUTABLE(${PROJECT_NAME} src/main.cpp src/factory.h src/structures.h src/config.h src/detection.h)
+ADD_EXECUTABLE(${PROJECT_NAME} src/main.cpp src/factory.h src/structures.h src/config.h src/detection.h src/structures.cpp)
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} raw opencv_core opencv_highgui opencv_imgproc opencv_videoio opencv_features2d opencv_objdetect opencv_video)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} raw opencv_core opencv_highgui opencv_imgproc opencv_videoio opencv_features2d opencv_objdetect opencv_video boost_serialization)
 
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
+
+find_package(Boost 1.55 REQUIRED system serialization)
