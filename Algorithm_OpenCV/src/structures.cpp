@@ -13,7 +13,7 @@ Packet::Packet(){
 
 std::ostream& operator<<(std::ostream& os, const Packet& p)
 {
-    os << "ID: " << p.id << ", SRC: " << p.addr_src << ", DST: " << p.dst<< std::endl;
+    os << "ID: " << p.id << ", SRC: " << p.addr_src << ", DST: " << p.dst;
     return os;
 }
 

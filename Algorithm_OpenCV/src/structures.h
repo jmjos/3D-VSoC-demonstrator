@@ -17,6 +17,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
+#include <opencv2/core/types.hpp>
 
 typedef int addr_t;
 typedef int node_t;
@@ -46,7 +47,7 @@ public:
     id_type id = 0;
     long long cyck = 0;
     data_t datatyp = 0;
-    addr_t addr_src = 0;
+    data_t addr_src;
     addr_t dst = 0;
     node_t node_type = 0;
     int num_deps = 0;
