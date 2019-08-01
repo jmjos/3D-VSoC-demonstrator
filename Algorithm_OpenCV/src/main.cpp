@@ -63,7 +63,7 @@ int main(int arg_num, char *arg_vec[]) {
     bool tracking_end = false;
 
     ///data transfer
-    Packet p2;
+/*    Packet p2;
     Packet p3;
     Packet p4;
     Packet p1;
@@ -95,7 +95,7 @@ int main(int arg_num, char *arg_vec[]) {
 
     for (auto i : newP.data){
         cout << "newP data:\t"<< i << endl;
-    }
+    }*/
 
     ///get maximum of images to read
     vector<string> vec_string;
@@ -178,6 +178,8 @@ int main(int arg_num, char *arg_vec[]) {
 
     cout << "image size: " << img.size() << endl;
 
+    PacketFactory* data_trans_1 = PacketFactory::getInstance();
+
     int cnt_CPU = 0;
 
     //divide image to CPUs
@@ -224,12 +226,13 @@ int main(int arg_num, char *arg_vec[]) {
              << "]; \t size: [" << CPU_width_height[i].x << " x " << CPU_width_height[i].y << "]" << endl;
     }
 
+    int cnt_packet = 0;
+
     //calculate ADCs for each CPU
     for (int i=0; i<CPU_points_begin.size(); i++) {
         cout << "ADCs for CPU " << i+1 << ":" << endl;
-//                printf("%s %-10i %-10s %-10s \n", "ADC for CPU ", i+1, "Point", "Size");
+
         int cnt_ADC = 0;
-        int yyy;
 
         //divide image to ADCs
         for (int k=0; k<ADC::nb_ADCs_x; k++) {
@@ -238,7 +241,6 @@ int main(int arg_num, char *arg_vec[]) {
                 cv::Mat crop = img(Rect(k * ceil(img_width / ADC::nb_ADCs_x), l * ceil(img_height / ADC::nb_ADCs_y),
                                         ceil(img_width / ADC::nb_ADCs_x), ceil(img_height / ADC::nb_ADCs_y))); //ceil(x) = roundup
                 ADCs_crop [k][l] = crop;
-//                              cout << "x coordinateADC: " << k * ceil(img_x / ADC::nb_ADCs_x) << "\ny coordinateADC: " << l * ceil(img_y / ADC::nb_ADCs_y) << endl;
 
                 if (i < 1) {
                     ADC_coord.emplace_back(Rect(k * ceil(img_width / ADC::nb_ADCs_x), l * ceil(img_height / ADC::nb_ADCs_y),
@@ -258,28 +260,26 @@ int main(int arg_num, char *arg_vec[]) {
                             && (l * ceil(img_height / ADC::nb_ADCs_y) + ceil(img_height / ADC::nb_ADCs_y)) <= (CPU_points_begin[i].y + CPU_width_height[i].y)   //y_ADC_end <= y_CPU_end
                     )) {
 
+                    data_trans_1->createPacket();
+                    data_trans_1->packets[cnt_packet]->addr_src = cnt_ADC;
+                    data_trans_1->packets[cnt_packet]->dst = i+1;
+                    data_trans_1->packets[cnt_packet]->data.emplace_back('C');
 
-
-//                    Rect y = ADC_coord[k*2+1];
-//                    y.x = k * ceil(img_width / ADC::nb_ADCs_x);
-//                    y.y = l * ceil(img_height / ADC::nb_ADCs_y);
-//                    y.width = ceil(img_width / ADC::nb_ADCs_x);
-//                    y.height = ceil(img_height / ADC::nb_ADCs_y);
-//
                     cout << "\tADC " << cnt_ADC << endl;
 
 //                    cout << "\tADC " << cnt_ADC << " P: [" << k * ceil(img_width / ADC::nb_ADCs_x) << "," << l * ceil(img_height / ADC::nb_ADCs_y)
 //                         << "]; \t\tsize: [" << ceil(img_width / ADC::nb_ADCs_x) << " x " << ceil(img_height / ADC::nb_ADCs_y) << "]" << endl;
-//                            printf("\t%s %-10i [%g,%g%-20s [%g x %g%-20s\n", "ADC ", cnt_ADC, (k * ceil(img_width / ADC::nb_ADCs_x)), (l * ceil(img_height / ADC::nb_ADCs_y)), "]", (ceil(img_width / ADC::nb_ADCs_x)), (ceil(img_height / ADC::nb_ADCs_y)), "]");
-//                            printf("\tADC %i Point: [%g,%g] %10s %g x %g]\n", cnt_ADC, (k * ceil(img_width / ADC::nb_ADCs_x)), (l * ceil(img_height / ADC::nb_ADCs_y)),
-//                                    (ceil(img_width / ADC::nb_ADCs_x)), (ceil(img_height / ADC::nb_ADCs_y)));
-
+                    cnt_packet++;
                 }
             }
         }
     }
 
-//    p_ADC.addr_src = ADC_coord[1].size();
+    for (int i=0; i < data_trans_1->packets.size(); i++) {
+        cout << "data_trans_1 Packet " << i+1 << ":\tID: " << data_trans_1->packets[i]->id << "\tSRC: "<<
+                data_trans_1->packets[i]->addr_src << "\tDST: " << data_trans_1->packets[i]->dst << "\tData: " <<
+                data_trans_1->packets[i]->data[0] << endl;
+    }
 
     for (int i=0; i < ADC_coord.size(); i++) {
         cout << "\tADC " << i+1 << " P: " << ADC_coord[i].tl() << " \tsize: " << ADC_coord[i].size() << endl;
@@ -507,19 +507,19 @@ int main(int arg_num, char *arg_vec[]) {
     return 0;
 }
 
-PacketFactory& PacketFactory::getInstance()
+PacketFactory* PacketFactory::getInstance() //only one instance of PacketFactory
 {
     static PacketFactory instance;
-    return instance;
+    return &instance;
 }
 
-Packet* PacketFactory::createPacket(id_t id)
+PacketFactory::PacketFactory() {}
+
+Packet* PacketFactory::createPacket()
 {
-    /*
-    auto p = new Packet(id);
+    auto p = new Packet;
     packets.push_back(p);
     return p;
-     */
 }
 
 void PacketFactory::deletePacket(Packet* p)
@@ -529,8 +529,10 @@ void PacketFactory::deletePacket(Packet* p)
     packets.erase(it);
 }
 
-ADC& ADC::getInstance()
+ADC* ADC::getInstance() //only one instance of ADC
 {
     static ADC instance;
-    return instance;
+    return &instance;
 }
+
+ADC::ADC() {}

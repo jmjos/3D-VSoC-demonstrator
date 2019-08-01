@@ -11,10 +11,14 @@
 #include <structures.h>
 
 class PacketFactory {
+private:
+    PacketFactory();
+
 public:
+    static PacketFactory* getInstance();
+
     std::vector<Packet*> packets;
-    static PacketFactory& getInstance();
-    Packet* createPacket(id_t id);
+    Packet* createPacket();
     void deletePacket(Packet* p);
 };
 
