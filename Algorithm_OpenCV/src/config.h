@@ -12,7 +12,7 @@ class ADC {
 
     public:
         static ADC* getInstance(); //Static access method
-        static const int nb_ADCs_x = 4;
+        static const int nb_ADCs_x = 3;
         static const int nb_ADCs_y = 4;
         static const int nb_CPUs_x = 2;
         static const int nb_CPUs_y = 2;

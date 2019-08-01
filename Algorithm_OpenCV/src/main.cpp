@@ -155,9 +155,6 @@ int main(int arg_num, char *arg_vec[]) {
     int img_width, img_height;
     Mat ADCs_crop [ADC::nb_ADCs_x][ADC::nb_ADCs_y];
     Mat CPUs_crop [ADC::nb_CPUs_x][ADC::nb_CPUs_y];
-    Point2i pts;
-    vector<Point2i> CPU_points_begin;
-    vector<Point2i> CPU_width_height;
     vector<Rect> ADC_coord;
     vector<Rect> CPU_coord;
 
@@ -178,7 +175,7 @@ int main(int arg_num, char *arg_vec[]) {
 
     cout << "image size: " << img.size() << endl;
 
-    PacketFactory* data_trans_1 = PacketFactory::getInstance();
+    PacketFactory* data_trans = PacketFactory::getInstance();
 
     int cnt_CPU = 0;
 
@@ -186,50 +183,49 @@ int main(int arg_num, char *arg_vec[]) {
     for (int i=0; i<ADC::nb_CPUs_x; i++) {
         for (int j=0; j<ADC::nb_CPUs_y; j++) {
             cnt_CPU++;
-            cv::Mat crop = img(Rect(i * ceil(img_width / ADC::nb_CPUs_x), j * ceil(img_height / ADC::nb_CPUs_y),
-                                    ceil(img_width / ADC::nb_CPUs_x), ceil(img_height / ADC::nb_CPUs_y))); //ceil(x) = roundup
-            CPUs_crop [i][j] = crop;
-            pts = Point2i(i * ceil(img_width / ADC::nb_CPUs_x), j * ceil(img_height / ADC::nb_CPUs_y));
-            CPU_points_begin.push_back(pts);
-            pts = Point2i(ceil(img_width / ADC::nb_CPUs_x), ceil(img_height / ADC::nb_CPUs_y));
-            CPU_width_height.push_back(pts);
-            cout << "CPU " << cnt_CPU << " P: [" << CPU_points_begin[i*ADC::nb_CPUs_y+j].x << "," << CPU_points_begin[i*ADC::nb_CPUs_y+j].y
-                 << "]; \t\tsize: [" << CPU_width_height[i*ADC::nb_CPUs_y+j].x << " x " << CPU_width_height[i*ADC::nb_CPUs_y+j].y << "]" << endl;
-//                    cout << "x coordinateCPU: " << CPU_points_begin[i*ADC::nb_CPUs_y+j].x << "\ny coordinateCPU: " << CPU_points_begin[i*ADC::nb_CPUs_y+j].y << endl;
-//                    cout << "width: " << CPU_width_height[i*ADC::nb_CPUs_y+j].x << "\nheight: " << CPU_width_height[i*ADC::nb_CPUs_y+j].y << endl;
+
+            ///crop the image for each CPU
+//            cv::Mat crop = img(Rect(i * ceil(img_width / ADC::nb_CPUs_x), j * ceil(img_height / ADC::nb_CPUs_y),
+//                                    ceil(img_width / ADC::nb_CPUs_x), ceil(img_height / ADC::nb_CPUs_y))); //ceil(x) = roundup
+//            CPUs_crop [i][j] = crop;
+
+            //calculate CPU coordinates
+            CPU_coord.emplace_back(Rect(i * ceil(img_width / ADC::nb_CPUs_x), j * ceil(img_height / ADC::nb_CPUs_y),
+                    ceil(img_width / ADC::nb_CPUs_x), ceil(img_height / ADC::nb_CPUs_y)));
+
+//            cout << "CPU " << cnt_CPU << " P: " << CPU_coord[i*ADC::nb_ADCs_y+j].tl() << "\tSize: " << CPU_coord[i*ADC::nb_ADCs_y+j].size() << endl;
         }
     }
 
-    //add max object size
-    for (int i=0; i<CPU_width_height.size(); i++) {
-        CPU_points_begin[i].x -= ceil(ADC::MAX_OBJECT_SIZE_x/2);
-        CPU_points_begin[i].y -= ceil(ADC::MAX_OBJECT_SIZE_y/2);
-        CPU_width_height[i].x += ceil(ADC::MAX_OBJECT_SIZE_x);
-        CPU_width_height[i].y += ceil(ADC::MAX_OBJECT_SIZE_y);
+    //add max object size -> calculate new CPU coordinates
+    for (int i=0; i<CPU_coord.size(); i++) {
+        CPU_coord[i].x -= ceil(ADC::MAX_OBJECT_SIZE_x/2);
+        CPU_coord[i].y -= ceil(ADC::MAX_OBJECT_SIZE_y/2);
+        CPU_coord[i].width += ceil(ADC::MAX_OBJECT_SIZE_x);
+        CPU_coord[i].height += ceil(ADC::MAX_OBJECT_SIZE_y);
 
-        if (CPU_points_begin[i].x < 0){
-            CPU_points_begin[i].x += ceil(ADC::MAX_OBJECT_SIZE_x/2);
-            CPU_width_height[i].x -= ceil(ADC::MAX_OBJECT_SIZE_x/2);
+        if (CPU_coord[i].x < 0){
+            CPU_coord[i].x += ceil(ADC::MAX_OBJECT_SIZE_x/2);
+            CPU_coord[i].width -= ceil(ADC::MAX_OBJECT_SIZE_x/2);
         }
-        if (CPU_points_begin[i].x + CPU_width_height[i].x > img_width) {
-            CPU_width_height[i].x -= ceil(ADC::MAX_OBJECT_SIZE_x/2);
+        if (CPU_coord[i].x + CPU_coord[i].width > img_width) {
+            CPU_coord[i].width -= ceil(ADC::MAX_OBJECT_SIZE_x/2);
         }
-        if (CPU_points_begin[i].y < 0){
-            CPU_points_begin[i].y += ceil(ADC::MAX_OBJECT_SIZE_y/2);
-            CPU_width_height[i].y -= ceil(ADC::MAX_OBJECT_SIZE_y/2);
+        if (CPU_coord[i].y < 0){
+            CPU_coord[i].y += ceil(ADC::MAX_OBJECT_SIZE_y/2);
+            CPU_coord[i].height -= ceil(ADC::MAX_OBJECT_SIZE_y/2);
         }
-        if (CPU_points_begin[i].y + CPU_width_height[i].y > img_height) {
-            CPU_width_height[i].y -= ceil(ADC::MAX_OBJECT_SIZE_y/2);
+        if (CPU_coord[i].y + CPU_coord[i].height > img_height) {
+            CPU_coord[i].height -= ceil(ADC::MAX_OBJECT_SIZE_y/2);
         }
 
-        cout << "CPU_with_obj " << i+1 << " P: [" << CPU_points_begin[i].x << "," << CPU_points_begin[i].y
-             << "]; \t size: [" << CPU_width_height[i].x << " x " << CPU_width_height[i].y << "]" << endl;
+        cout << "CPU " << cnt_CPU << " P: " << CPU_coord[i].tl() << "\tSize: " << CPU_coord[i].size() << endl;
     }
 
     int cnt_packet = 0;
 
     //calculate ADCs for each CPU
-    for (int i=0; i<CPU_points_begin.size(); i++) {
+    for (int i=0; i<CPU_coord.size(); i++) {
         cout << "ADCs for CPU " << i+1 << ":" << endl;
 
         int cnt_ADC = 0;
@@ -238,54 +234,55 @@ int main(int arg_num, char *arg_vec[]) {
         for (int k=0; k<ADC::nb_ADCs_x; k++) {
             for (int l=0; l<ADC::nb_ADCs_y; l++) {
                 cnt_ADC++;
-                cv::Mat crop = img(Rect(k * ceil(img_width / ADC::nb_ADCs_x), l * ceil(img_height / ADC::nb_ADCs_y),
-                                        ceil(img_width / ADC::nb_ADCs_x), ceil(img_height / ADC::nb_ADCs_y))); //ceil(x) = roundup
-                ADCs_crop [k][l] = crop;
 
-                if (i < 1) {
+                ///crop the image for each CPU
+//                cv::Mat crop = img(Rect(k * ceil(img_width / ADC::nb_ADCs_x), l * ceil(img_height / ADC::nb_ADCs_y),
+//                                        ceil(img_width / ADC::nb_ADCs_x), ceil(img_height / ADC::nb_ADCs_y))); //ceil(x) = roundup
+//                ADCs_crop [k][l] = crop;
+
+                if (i < 1) { //calculate ADC coordinates
                     ADC_coord.emplace_back(Rect(k * ceil(img_width / ADC::nb_ADCs_x), l * ceil(img_height / ADC::nb_ADCs_y),
                             ceil(img_width / ADC::nb_ADCs_x), ceil(img_height / ADC::nb_ADCs_y)));
                 }
 
                 //select ADCs
                 if (( //CPU 2 and 3
-                            k * ceil(img_width / ADC::nb_ADCs_x) < (CPU_points_begin[i].x + CPU_width_height[i].x)                                      //x_ADC_begin < x_CPU_end
-                            && l * ceil(img_height / ADC::nb_ADCs_y) < (CPU_points_begin[i].y + CPU_width_height[i].y)                                  //y_ADC_begin < y_CPU_end
-                            && (k * ceil(img_width / ADC::nb_ADCs_x) + ceil(img_width / ADC::nb_ADCs_x)) > CPU_points_begin[i].x                        //x_ADC_end > x_CPU_begin
-                            && (l * ceil(img_height / ADC::nb_ADCs_y) + ceil(img_height / ADC::nb_ADCs_y)) > CPU_points_begin[i].y                      //y_ADC_end > y_CPU_begin
+                            k * ceil(img_width / ADC::nb_ADCs_x) < (CPU_coord[i].x + CPU_coord[i].width)                                            //x_ADC_begin < x_CPU_end
+                            && l * ceil(img_height / ADC::nb_ADCs_y) < (CPU_coord[i].y + CPU_coord[i].height)                                       //y_ADC_begin < y_CPU_end
+                            && (k * ceil(img_width / ADC::nb_ADCs_x) + ceil(img_width / ADC::nb_ADCs_x)) > CPU_coord[i].x                           //x_ADC_end > x_CPU_begin
+                            && (l * ceil(img_height / ADC::nb_ADCs_y) + ceil(img_height / ADC::nb_ADCs_y)) > CPU_coord[i].y                         //y_ADC_end > y_CPU_begin
                     ) || ( //CPU 1 and 4
-                            k * ceil(img_width / ADC::nb_ADCs_x) >= CPU_points_begin[i].x                                                                       //x_ADC_begin >= x_CPU_begin
-                            && l * ceil(img_height / ADC::nb_ADCs_y) >= CPU_points_begin[i].y                                                                   //y_ADC_begin >= y_CPU_begin
-                            && (k * ceil(img_width / ADC::nb_ADCs_x) + ceil(img_width / ADC::nb_ADCs_x)) <= (CPU_points_begin[i].x + CPU_width_height[i].x)     //x_ADC_end <= x_CPU_end
-                            && (l * ceil(img_height / ADC::nb_ADCs_y) + ceil(img_height / ADC::nb_ADCs_y)) <= (CPU_points_begin[i].y + CPU_width_height[i].y)   //y_ADC_end <= y_CPU_end
+                            k * ceil(img_width / ADC::nb_ADCs_x) >= CPU_coord[i].x                                                                  //x_ADC_begin >= x_CPU_begin
+                            && l * ceil(img_height / ADC::nb_ADCs_y) >= CPU_coord[i].y                                                              //y_ADC_begin >= y_CPU_begin
+                            && (k * ceil(img_width / ADC::nb_ADCs_x) + ceil(img_width / ADC::nb_ADCs_x)) <= (CPU_coord[i].x + CPU_coord[i].width)   //x_ADC_end <= x_CPU_end
+                            && (l * ceil(img_height / ADC::nb_ADCs_y) + ceil(img_height / ADC::nb_ADCs_y)) <= (CPU_coord[i].y + CPU_coord[i].height)//y_ADC_end <= y_CPU_end
                     )) {
 
-                    data_trans_1->createPacket();
-                    data_trans_1->packets[cnt_packet]->addr_src = cnt_ADC;
-                    data_trans_1->packets[cnt_packet]->dst = i+1;
-                    data_trans_1->packets[cnt_packet]->data.emplace_back('C');
+                    //create data transmission from colour image to grey image
+                    data_trans->createPacket();
+                    data_trans->packets[cnt_packet]->addr_src = cnt_ADC;
+                    data_trans->packets[cnt_packet]->dst = i+1;
+                    data_trans->packets[cnt_packet]->data.emplace_back('C');
 
                     cout << "\tADC " << cnt_ADC << endl;
 
-//                    cout << "\tADC " << cnt_ADC << " P: [" << k * ceil(img_width / ADC::nb_ADCs_x) << "," << l * ceil(img_height / ADC::nb_ADCs_y)
-//                         << "]; \t\tsize: [" << ceil(img_width / ADC::nb_ADCs_x) << " x " << ceil(img_height / ADC::nb_ADCs_y) << "]" << endl;
                     cnt_packet++;
                 }
             }
         }
     }
 
-    for (int i=0; i < data_trans_1->packets.size(); i++) {
-        cout << "data_trans_1 Packet " << i+1 << ":\tID: " << data_trans_1->packets[i]->id << "\tSRC: "<<
-                data_trans_1->packets[i]->addr_src << "\tDST: " << data_trans_1->packets[i]->dst << "\tData: " <<
-                data_trans_1->packets[i]->data[0] << endl;
-    }
-
     for (int i=0; i < ADC_coord.size(); i++) {
         cout << "\tADC " << i+1 << " P: " << ADC_coord[i].tl() << " \tsize: " << ADC_coord[i].size() << endl;
     }
 
-    imshow("LK Demo", ADCs_crop [1][3]);
+    for (int i=0; i < data_trans->packets.size(); i++) {
+        cout << "Packet " << i+1 << ":\tID: " << data_trans->packets[i]->id << "\tSRC: "<<
+                data_trans->packets[i]->addr_src << "\tDST: " << data_trans->packets[i]->dst << "\tData: " <<
+                data_trans->packets[i]->data[0] << endl;
+    }
+
+//    imshow("LK Demo", ADCs_crop [1][3]);
     waitKey(0);
 //        imshow("LK Demo", CPUs_crop [1][0]);
 //        waitKey(0);
