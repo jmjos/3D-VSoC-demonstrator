@@ -18,7 +18,7 @@ class PacketFactory {
         static PacketFactory* getInstance();
 
         std::vector<Packet*> packets;
-        Packet* createPacket();
+        Packet* createPacket(data_t addr_source, addr_t destination);
         void deletePacket(Packet* p);
 };
 

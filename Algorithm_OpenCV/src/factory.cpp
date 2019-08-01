@@ -12,12 +12,18 @@ PacketFactory* PacketFactory::getInstance() //only one instance of PacketFactory
 
 PacketFactory::PacketFactory() {}
 
-Packet* PacketFactory::createPacket()
-{
+Packet* PacketFactory::createPacket(data_t addr_source, addr_t destination) {
     auto p = new Packet;
+    p->addr_src = addr_source;
+    p->dst = destination;
     packets.push_back(p);
     return p;
 }
+//{
+//    auto p = new Packet;
+//    packets.push_back(p);
+//    return p;
+//}
 
 void PacketFactory::deletePacket(Packet* p)
 {

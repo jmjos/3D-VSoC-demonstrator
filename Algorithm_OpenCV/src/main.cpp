@@ -153,10 +153,13 @@ int main(int arg_num, char *arg_vec[]) {
 
     ///initialization for calc ADC/CPU
     int img_width, img_height;
-//    Mat ADCs_crop [Sensor::nb_ADCs_x][Sensor::nb_ADCs_y];
-//    Mat CPUs_crop [Sensor::nb_CPUs_x][Sensor::nb_CPUs_y];
+    Mat ADC_crop, CPU_crop;
     vector<Rect> ADC_coord;
     vector<Rect> CPU_coord;
+    vector<char> daten;
+
+    daten.emplace_back('a');
+    daten.emplace_back('b');
 
     ///begin calc ADCs/CPUs
     //read image
@@ -175,6 +178,9 @@ int main(int arg_num, char *arg_vec[]) {
 
     cout << "image size: " << img.size() << endl;
 
+    imshow("LK Demo",  img);
+    waitKey(0);
+
     PacketFactory* data_trans = PacketFactory::getInstance();
 
     int cnt_CPU = 0;
@@ -185,9 +191,8 @@ int main(int arg_num, char *arg_vec[]) {
             cnt_CPU++;
 
             ///crop the image for each CPU
-//            cv::Mat crop = img(Rect(i * ceil(img_width / ADC::nb_CPUs_x), j * ceil(img_height / ADC::nb_CPUs_y),
-//                                    ceil(img_width / ADC::nb_CPUs_x), ceil(img_height / ADC::nb_CPUs_y))); //ceil(x) = roundup
-//            CPUs_crop [i][j] = crop;
+//            CPU_crop = img(Rect(i * ceil(img_width / Sensor::nb_CPUs_x), j * ceil(img_height / Sensor::nb_CPUs_y),
+//                                    ceil(img_width / Sensor::nb_CPUs_x), ceil(img_height / Sensor::nb_CPUs_y))); //ceil(x) = roundup
 
             //calculate CPU coordinates
             CPU_coord.emplace_back(Rect(i * ceil(img_width / Sensor::nb_CPUs_x), j * ceil(img_height / Sensor::nb_CPUs_y),
@@ -235,12 +240,12 @@ int main(int arg_num, char *arg_vec[]) {
             for (int l=0; l<Sensor::nb_ADCs_y; l++) {
                 cnt_ADC++;
 
-                ///crop the image for each CPU
-//                cv::Mat crop = img(Rect(k * ceil(img_width / ADC::nb_ADCs_x), l * ceil(img_height / ADC::nb_ADCs_y),
-//                                        ceil(img_width / ADC::nb_ADCs_x), ceil(img_height / ADC::nb_ADCs_y))); //ceil(x) = roundup
-//                ADCs_crop [k][l] = crop;
+                if (i < 1) { //only for one CPU
+                    //crop the image for each ADC
+                    ADC_crop = img(Rect(k * ceil(img_width / Sensor::nb_ADCs_x), l * ceil(img_height / Sensor::nb_ADCs_y),
+                            ceil(img_width / Sensor::nb_ADCs_x), ceil(img_height / Sensor::nb_ADCs_y))); //ceil(x) = roundup
 
-                if (i < 1) { //calculate ADC coordinates
+                    //calculate ADC coordinates
                     ADC_coord.emplace_back(Rect(k * ceil(img_width / Sensor::nb_ADCs_x), l * ceil(img_height / Sensor::nb_ADCs_y),
                             ceil(img_width / Sensor::nb_ADCs_x), ceil(img_height / Sensor::nb_ADCs_y)));
                 }
@@ -259,10 +264,11 @@ int main(int arg_num, char *arg_vec[]) {
                     )) {
 
                     //create data transmission from colour image to grey image
-                    data_trans->createPacket();
-                    data_trans->packets[cnt_packet]->addr_src = cnt_ADC;
-                    data_trans->packets[cnt_packet]->dst = i+1;
-                    data_trans->packets[cnt_packet]->data.emplace_back('C');
+                    data_trans->createPacket(cnt_ADC, i+1);
+
+//                    for (int j=0; j < daten.size(); j++) {
+//                        data_trans->packets[cnt_packet]->data.emplace_back(daten[j]);
+//                    }
 
 //                    cout << "\tADC " << cnt_ADC << endl;
 
@@ -272,12 +278,44 @@ int main(int arg_num, char *arg_vec[]) {
         }
     }
 
+//    for (int i=0; i < ADC_crop.size().width; i++) {
+//        for (int j=0; j < ADC_crop.size().height; j++) {
+//            cout << ADC_crop.data << endl;
+//        }
+//    }
+
+    cout << "img Data: " << endl;
+
+    for (int i=0; i < 3; i++) {
+        for (int j=0; j < 3; j++) {
+            cout << ADC_crop.at<cv::Vec3b>(i,j) << endl;
+            cout << "img Data: " << endl;
+        }
+    }
+
+    for (int i=0; i < Sensor::nb_ADCs_x; i++) {
+        for (int j=0; j < Sensor::nb_ADCs_y; j++) {
+
+        }
+    }
+
+    for (int i=0; i < data_trans->packets.size(); i++) {
+        for (int j=0; j < daten.size(); j++) {
+            data_trans->packets[i]->data.emplace_back(daten[j]);
+        }
+    }
+
     for (int i=0; i < ADC_coord.size(); i++) {
         cout << "ADC " << i+1 << " P: " << ADC_coord[i].tl() << " \tsize: " << ADC_coord[i].size() << endl;
     }
 
-    for (auto p : data_trans->packets){
+    for (auto p : data_trans->packets){ //short for: for (auto p = data_trans->packets.begin(); p != data_trans->packets.end(); p++)
         cout << "Packet " << p->id+1 << ":" << p << endl;
+        cout << "\tData: ";
+        for (auto d : p->data) {
+            cout << d << ", ";
+        }
+        cout << endl;
     }
 
 //    imshow("LK Demo", ADCs_crop [1][3]);
