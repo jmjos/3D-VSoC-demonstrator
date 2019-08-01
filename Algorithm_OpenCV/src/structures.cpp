@@ -3,6 +3,7 @@
 //
 
 #include "structures.h"
+#include "factory.h"
 
 id_type Packet::idcnt = 0;
 

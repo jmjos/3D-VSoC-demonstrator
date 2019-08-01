@@ -11,15 +11,15 @@
 #include <structures.h>
 
 class PacketFactory {
-private:
-    PacketFactory();
+    private:
+        PacketFactory();
 
-public:
-    static PacketFactory* getInstance();
+    public:
+        static PacketFactory* getInstance();
 
-    std::vector<Packet*> packets;
-    Packet* createPacket();
-    void deletePacket(Packet* p);
+        std::vector<Packet*> packets;
+        Packet* createPacket();
+        void deletePacket(Packet* p);
 };
 
 #endif //RAWTOCV_FACTORY_H

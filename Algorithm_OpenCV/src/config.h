@@ -6,12 +6,12 @@
 #define RAWTOCV_CONFIG_H
 
 // Sensor -> n ADC's -> crop image in n rows and m columns
-class ADC {
+class Sensor {
     private:
-        ADC(); //Private constructor to prevent instancing
+        Sensor(); //Private constructor to prevent instancing
 
     public:
-        static ADC* getInstance(); //Static access method
+        static Sensor* getInstance(); //Static access method
         static const int nb_ADCs_x = 3;
         static const int nb_ADCs_y = 4;
         static const int nb_CPUs_x = 2;

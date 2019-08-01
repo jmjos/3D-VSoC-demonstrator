@@ -153,8 +153,8 @@ int main(int arg_num, char *arg_vec[]) {
 
     ///initialization for calc ADC/CPU
     int img_width, img_height;
-    Mat ADCs_crop [ADC::nb_ADCs_x][ADC::nb_ADCs_y];
-    Mat CPUs_crop [ADC::nb_CPUs_x][ADC::nb_CPUs_y];
+    Mat ADCs_crop [Sensor::nb_ADCs_x][Sensor::nb_ADCs_y];
+    Mat CPUs_crop [Sensor::nb_CPUs_x][Sensor::nb_CPUs_y];
     vector<Rect> ADC_coord;
     vector<Rect> CPU_coord;
 
@@ -180,8 +180,8 @@ int main(int arg_num, char *arg_vec[]) {
     int cnt_CPU = 0;
 
     //divide image to CPUs
-    for (int i=0; i<ADC::nb_CPUs_x; i++) {
-        for (int j=0; j<ADC::nb_CPUs_y; j++) {
+    for (int i=0; i<Sensor::nb_CPUs_x; i++) {
+        for (int j=0; j<Sensor::nb_CPUs_y; j++) {
             cnt_CPU++;
 
             ///crop the image for each CPU
@@ -190,8 +190,8 @@ int main(int arg_num, char *arg_vec[]) {
 //            CPUs_crop [i][j] = crop;
 
             //calculate CPU coordinates
-            CPU_coord.emplace_back(Rect(i * ceil(img_width / ADC::nb_CPUs_x), j * ceil(img_height / ADC::nb_CPUs_y),
-                    ceil(img_width / ADC::nb_CPUs_x), ceil(img_height / ADC::nb_CPUs_y)));
+            CPU_coord.emplace_back(Rect(i * ceil(img_width / Sensor::nb_CPUs_x), j * ceil(img_height / Sensor::nb_CPUs_y),
+                    ceil(img_width / Sensor::nb_CPUs_x), ceil(img_height / Sensor::nb_CPUs_y)));
 
 //            cout << "CPU " << cnt_CPU << " P: " << CPU_coord[i*ADC::nb_ADCs_y+j].tl() << "\tSize: " << CPU_coord[i*ADC::nb_ADCs_y+j].size() << endl;
         }
@@ -199,27 +199,27 @@ int main(int arg_num, char *arg_vec[]) {
 
     //add max object size -> calculate new CPU coordinates
     for (int i=0; i<CPU_coord.size(); i++) {
-        CPU_coord[i].x -= ceil(ADC::MAX_OBJECT_SIZE_x/2);
-        CPU_coord[i].y -= ceil(ADC::MAX_OBJECT_SIZE_y/2);
-        CPU_coord[i].width += ceil(ADC::MAX_OBJECT_SIZE_x);
-        CPU_coord[i].height += ceil(ADC::MAX_OBJECT_SIZE_y);
+        CPU_coord[i].x -= ceil(Sensor::MAX_OBJECT_SIZE_x/2);
+        CPU_coord[i].y -= ceil(Sensor::MAX_OBJECT_SIZE_y/2);
+        CPU_coord[i].width += ceil(Sensor::MAX_OBJECT_SIZE_x);
+        CPU_coord[i].height += ceil(Sensor::MAX_OBJECT_SIZE_y);
 
         if (CPU_coord[i].x < 0){
-            CPU_coord[i].x += ceil(ADC::MAX_OBJECT_SIZE_x/2);
-            CPU_coord[i].width -= ceil(ADC::MAX_OBJECT_SIZE_x/2);
+            CPU_coord[i].x += ceil(Sensor::MAX_OBJECT_SIZE_x/2);
+            CPU_coord[i].width -= ceil(Sensor::MAX_OBJECT_SIZE_x/2);
         }
         if (CPU_coord[i].x + CPU_coord[i].width > img_width) {
-            CPU_coord[i].width -= ceil(ADC::MAX_OBJECT_SIZE_x/2);
+            CPU_coord[i].width -= ceil(Sensor::MAX_OBJECT_SIZE_x/2);
         }
         if (CPU_coord[i].y < 0){
-            CPU_coord[i].y += ceil(ADC::MAX_OBJECT_SIZE_y/2);
-            CPU_coord[i].height -= ceil(ADC::MAX_OBJECT_SIZE_y/2);
+            CPU_coord[i].y += ceil(Sensor::MAX_OBJECT_SIZE_y/2);
+            CPU_coord[i].height -= ceil(Sensor::MAX_OBJECT_SIZE_y/2);
         }
         if (CPU_coord[i].y + CPU_coord[i].height > img_height) {
-            CPU_coord[i].height -= ceil(ADC::MAX_OBJECT_SIZE_y/2);
+            CPU_coord[i].height -= ceil(Sensor::MAX_OBJECT_SIZE_y/2);
         }
 
-        cout << "CPU " << cnt_CPU << " P: " << CPU_coord[i].tl() << "\tSize: " << CPU_coord[i].size() << endl;
+        cout << "CPU " << i+1  << " P: " << CPU_coord[i].tl() << "\tSize: " << CPU_coord[i].size() << endl;
     }
 
     int cnt_packet = 0;
@@ -231,8 +231,8 @@ int main(int arg_num, char *arg_vec[]) {
         int cnt_ADC = 0;
 
         //divide image to ADCs
-        for (int k=0; k<ADC::nb_ADCs_x; k++) {
-            for (int l=0; l<ADC::nb_ADCs_y; l++) {
+        for (int k=0; k<Sensor::nb_ADCs_x; k++) {
+            for (int l=0; l<Sensor::nb_ADCs_y; l++) {
                 cnt_ADC++;
 
                 ///crop the image for each CPU
@@ -241,21 +241,21 @@ int main(int arg_num, char *arg_vec[]) {
 //                ADCs_crop [k][l] = crop;
 
                 if (i < 1) { //calculate ADC coordinates
-                    ADC_coord.emplace_back(Rect(k * ceil(img_width / ADC::nb_ADCs_x), l * ceil(img_height / ADC::nb_ADCs_y),
-                            ceil(img_width / ADC::nb_ADCs_x), ceil(img_height / ADC::nb_ADCs_y)));
+                    ADC_coord.emplace_back(Rect(k * ceil(img_width / Sensor::nb_ADCs_x), l * ceil(img_height / Sensor::nb_ADCs_y),
+                            ceil(img_width / Sensor::nb_ADCs_x), ceil(img_height / Sensor::nb_ADCs_y)));
                 }
 
                 //select ADCs
                 if (( //CPU 2 and 3
-                            k * ceil(img_width / ADC::nb_ADCs_x) < (CPU_coord[i].x + CPU_coord[i].width)                                            //x_ADC_begin < x_CPU_end
-                            && l * ceil(img_height / ADC::nb_ADCs_y) < (CPU_coord[i].y + CPU_coord[i].height)                                       //y_ADC_begin < y_CPU_end
-                            && (k * ceil(img_width / ADC::nb_ADCs_x) + ceil(img_width / ADC::nb_ADCs_x)) > CPU_coord[i].x                           //x_ADC_end > x_CPU_begin
-                            && (l * ceil(img_height / ADC::nb_ADCs_y) + ceil(img_height / ADC::nb_ADCs_y)) > CPU_coord[i].y                         //y_ADC_end > y_CPU_begin
+                            k * ceil(img_width / Sensor::nb_ADCs_x) < (CPU_coord[i].x + CPU_coord[i].width)                                                 //x_ADC_begin < x_CPU_end
+                            && l * ceil(img_height / Sensor::nb_ADCs_y) < (CPU_coord[i].y + CPU_coord[i].height)                                            //y_ADC_begin < y_CPU_end
+                            && (k * ceil(img_width / Sensor::nb_ADCs_x) + ceil(img_width / Sensor::nb_ADCs_x)) > CPU_coord[i].x                             //x_ADC_end > x_CPU_begin
+                            && (l * ceil(img_height / Sensor::nb_ADCs_y) + ceil(img_height / Sensor::nb_ADCs_y)) > CPU_coord[i].y                           //y_ADC_end > y_CPU_begin
                     ) || ( //CPU 1 and 4
-                            k * ceil(img_width / ADC::nb_ADCs_x) >= CPU_coord[i].x                                                                  //x_ADC_begin >= x_CPU_begin
-                            && l * ceil(img_height / ADC::nb_ADCs_y) >= CPU_coord[i].y                                                              //y_ADC_begin >= y_CPU_begin
-                            && (k * ceil(img_width / ADC::nb_ADCs_x) + ceil(img_width / ADC::nb_ADCs_x)) <= (CPU_coord[i].x + CPU_coord[i].width)   //x_ADC_end <= x_CPU_end
-                            && (l * ceil(img_height / ADC::nb_ADCs_y) + ceil(img_height / ADC::nb_ADCs_y)) <= (CPU_coord[i].y + CPU_coord[i].height)//y_ADC_end <= y_CPU_end
+                            k * ceil(img_width / Sensor::nb_ADCs_x) >= CPU_coord[i].x                                                                       //x_ADC_begin >= x_CPU_begin
+                            && l * ceil(img_height / Sensor::nb_ADCs_y) >= CPU_coord[i].y                                                                   //y_ADC_begin >= y_CPU_begin
+                            && (k * ceil(img_width / Sensor::nb_ADCs_x) + ceil(img_width / Sensor::nb_ADCs_x)) <= (CPU_coord[i].x + CPU_coord[i].width)     //x_ADC_end <= x_CPU_end
+                            && (l * ceil(img_height / Sensor::nb_ADCs_y) + ceil(img_height / Sensor::nb_ADCs_y)) <= (CPU_coord[i].y + CPU_coord[i].height)  //y_ADC_end <= y_CPU_end
                     )) {
 
                     //create data transmission from colour image to grey image
@@ -273,13 +273,14 @@ int main(int arg_num, char *arg_vec[]) {
     }
 
     for (int i=0; i < ADC_coord.size(); i++) {
-        cout << "\tADC " << i+1 << " P: " << ADC_coord[i].tl() << " \tsize: " << ADC_coord[i].size() << endl;
+        cout << "ADC " << i+1 << " P: " << ADC_coord[i].tl() << " \tsize: " << ADC_coord[i].size() << endl;
     }
 
     for (int i=0; i < data_trans->packets.size(); i++) {
         cout << "Packet " << i+1 << ":\tID: " << data_trans->packets[i]->id << "\tSRC: "<<
                 data_trans->packets[i]->addr_src << "\tDST: " << data_trans->packets[i]->dst << "\tData: " <<
                 data_trans->packets[i]->data[0] << endl;
+//        cout << "Packet " << i+1 << ": " << data_trans->packets[i] << endl;
     }
 
 //    imshow("LK Demo", ADCs_crop [1][3]);
@@ -526,10 +527,10 @@ void PacketFactory::deletePacket(Packet* p)
     packets.erase(it);
 }
 
-ADC* ADC::getInstance() //only one instance of ADC
+Sensor* Sensor::getInstance() //only one instance of ADC
 {
-    static ADC instance;
+    static Sensor instance;
     return &instance;
 }
 
-ADC::ADC() {}
+Sensor::Sensor() {}
