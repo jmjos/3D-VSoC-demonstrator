@@ -153,8 +153,8 @@ int main(int arg_num, char *arg_vec[]) {
 
     ///initialization for calc ADC/CPU
     int img_width, img_height;
-    Mat ADCs_crop [Sensor::nb_ADCs_x][Sensor::nb_ADCs_y];
-    Mat CPUs_crop [Sensor::nb_CPUs_x][Sensor::nb_CPUs_y];
+//    Mat ADCs_crop [Sensor::nb_ADCs_x][Sensor::nb_ADCs_y];
+//    Mat CPUs_crop [Sensor::nb_CPUs_x][Sensor::nb_CPUs_y];
     vector<Rect> ADC_coord;
     vector<Rect> CPU_coord;
 
@@ -226,7 +226,7 @@ int main(int arg_num, char *arg_vec[]) {
 
     //calculate ADCs for each CPU
     for (int i=0; i<CPU_coord.size(); i++) {
-        cout << "ADCs for CPU " << i+1 << ":" << endl;
+//        cout << "ADCs for CPU " << i+1 << ":" << endl;
 
         int cnt_ADC = 0;
 
@@ -264,7 +264,7 @@ int main(int arg_num, char *arg_vec[]) {
                     data_trans->packets[cnt_packet]->dst = i+1;
                     data_trans->packets[cnt_packet]->data.emplace_back('C');
 
-                    cout << "\tADC " << cnt_ADC << endl;
+//                    cout << "\tADC " << cnt_ADC << endl;
 
                     cnt_packet++;
                 }
@@ -276,11 +276,8 @@ int main(int arg_num, char *arg_vec[]) {
         cout << "ADC " << i+1 << " P: " << ADC_coord[i].tl() << " \tsize: " << ADC_coord[i].size() << endl;
     }
 
-    for (int i=0; i < data_trans->packets.size(); i++) {
-        cout << "Packet " << i+1 << ":\tID: " << data_trans->packets[i]->id << "\tSRC: "<<
-                data_trans->packets[i]->addr_src << "\tDST: " << data_trans->packets[i]->dst << "\tData: " <<
-                data_trans->packets[i]->data[0] << endl;
-//        cout << "Packet " << i+1 << ": " << data_trans->packets[i] << endl;
+    for (auto p : data_trans->packets){
+        cout << "Packet " << p->id+1 << ":" << p << endl;
     }
 
 //    imshow("LK Demo", ADCs_crop [1][3]);
@@ -352,7 +349,7 @@ int main(int arg_num, char *arg_vec[]) {
             }
 
             if (!Faces.empty()) {
-                break; //if no face detected -> another attempt
+                break; //if no face detected -> next image
             }
         }
 
@@ -504,33 +501,3 @@ int main(int arg_num, char *arg_vec[]) {
 
     return 0;
 }
-
-PacketFactory* PacketFactory::getInstance() //only one instance of PacketFactory
-{
-    static PacketFactory instance;
-    return &instance;
-}
-
-PacketFactory::PacketFactory() {}
-
-Packet* PacketFactory::createPacket()
-{
-    auto p = new Packet;
-    packets.push_back(p);
-    return p;
-}
-
-void PacketFactory::deletePacket(Packet* p)
-{
-    auto it = std::find(packets.begin(), packets.end(), p);
-    delete(*it);
-    packets.erase(it);
-}
-
-Sensor* Sensor::getInstance() //only one instance of ADC
-{
-    static Sensor instance;
-    return &instance;
-}
-
-Sensor::Sensor() {}

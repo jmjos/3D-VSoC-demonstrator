@@ -56,7 +56,7 @@ public:
 
     Packet();
 
-    friend std::ostream & operator <<(std::ostream & os, const Packet& p);
+    friend std::ostream & operator <<(std::ostream & os, const Packet* p);
     friend bool operator==(const Packet& p1, const Packet& p2);
     friend bool operator!=(const Packet& p1, const Packet& p2);
 };

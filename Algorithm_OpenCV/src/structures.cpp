@@ -12,9 +12,9 @@ Packet::Packet(){
     ++idcnt;
 }
 
-std::ostream& operator<<(std::ostream& os, const Packet& p)
+std::ostream& operator<<(std::ostream& os, const Packet* p)
 {
-    os << "ID: " << p.id << ", SRC: " << p.addr_src << ", DST: " << p.dst;
+    os << "\tID: " << p->id << "\tSRC: " << p->addr_src << "\tDST: " << p->dst;
     return os;
 }
 
