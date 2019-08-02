@@ -154,10 +154,12 @@ int main(int arg_num, char *arg_vec[]) {
 
     ///initialization for calc ADC/CPU
     int img_width, img_height;
-    Mat ADC_crop[Sensor::nb_ADCs_x][Sensor::nb_ADCs_y];
+//    Mat ADC_crop[Sensor::nb_ADCs_x][Sensor::nb_ADCs_y];
     Mat CPU_crop[Sensor::nb_CPUs_x][Sensor::nb_CPUs_y];
     vector<Rect> ADC_coord;
     vector<Rect> CPU_coord;
+    vector<Point> ADC2CPU;
+    vector<Mat> ADC_crop;
 
     ///begin calc ADCs/CPUs
     //read image
@@ -170,8 +172,6 @@ int main(int arg_num, char *arg_vec[]) {
     file = path_key[0] + string_k + path_key[1];
 
     img = imread(file,1); //read image
-
-//    Mat image(img.rows, img.cols, CV_8UC1);
 
     ///LibRaw
    /* file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/portrait.nef";
@@ -209,8 +209,8 @@ int main(int arg_num, char *arg_vec[]) {
     for (int i=0; i<Sensor::nb_CPUs_x; i++) {
         for (int j=0; j<Sensor::nb_CPUs_y; j++) {
             ///crop the image for each CPU
-//            CPU_crop[i][j] = img(Rect(i * ceil(img_width / Sensor::nb_CPUs_x), j * ceil(img_height / Sensor::nb_CPUs_y),
-//                                    ceil(img_width / Sensor::nb_CPUs_x), ceil(img_height / Sensor::nb_CPUs_y))); //ceil(x) = roundup
+            CPU_crop[i][j] = img(Rect(i * ceil(img_width / Sensor::nb_CPUs_x), j * ceil(img_height / Sensor::nb_CPUs_y),
+                                    ceil(img_width / Sensor::nb_CPUs_x), ceil(img_height / Sensor::nb_CPUs_y))); //ceil(x) = roundup
 
             //calculate CPU coordinates
             CPU_coord.emplace_back(Rect(i * ceil(img_width / Sensor::nb_CPUs_x), j * ceil(img_height / Sensor::nb_CPUs_y),
@@ -242,10 +242,8 @@ int main(int arg_num, char *arg_vec[]) {
             CPU_coord[i].height -= ceil(Sensor::MAX_OBJECT_SIZE_y/2);
         }
 
-//        cout << "CPU " << i+1  << " P: " << right << CPU_coord[i].tl() << "\tSize: " << right << CPU_coord[i].size() << endl;
+        cout << "CPU " << i+1  << " P: " << right << CPU_coord[i].tl() << "\tSize: " << right << CPU_coord[i].size() << endl;
     }
-
-    int cnt_packet = 0;
 
     //calculate ADCs for each CPU
     for (int i=0; i<CPU_coord.size(); i++) {
@@ -258,8 +256,8 @@ int main(int arg_num, char *arg_vec[]) {
 
                 if (i < 1) { //only for one CPU
                     //crop the image for each ADC
-                    ADC_crop[k][l] = img(Rect(k * ceil(img_width / Sensor::nb_ADCs_x), l * ceil(img_height / Sensor::nb_ADCs_y),
-                            ceil(img_width / Sensor::nb_ADCs_x), ceil(img_height / Sensor::nb_ADCs_y))); //ceil(x) = roundup
+                    ADC_crop.emplace_back(img(Rect(k * ceil(img_width / Sensor::nb_ADCs_x), l * ceil(img_height / Sensor::nb_ADCs_y),
+                            ceil(img_width / Sensor::nb_ADCs_x), ceil(img_height / Sensor::nb_ADCs_y)))); //ceil(x) = roundup
 
                     //calculate ADC coordinates
                     ADC_coord.emplace_back(Rect(k * ceil(img_width / Sensor::nb_ADCs_x), l * ceil(img_height / Sensor::nb_ADCs_y),
@@ -279,29 +277,39 @@ int main(int arg_num, char *arg_vec[]) {
                             && (l * ADC_coord[cnt].height + ADC_coord[cnt].height) <= (CPU_coord[i].y + CPU_coord[i].height)    //y_ADC_end <= y_CPU_end
                     )) {
 
-                    //create data transmission from colour image to grey image
-                    data_trans->createPacket(cnt+1, i+1);
-
-                    for (int g=0; g < ADC_crop[k][l].size().width; g++) {
-                        for (int h=0; h < ADC_crop[k][l].size().height; h++) {
-                            data_trans->packets[cnt_packet]->data.emplace_back(ADC_crop[k][l].at<cv::Vec3b>(g,h).val[0]);
-                            data_trans->packets[cnt_packet]->data.emplace_back(ADC_crop[k][l].at<cv::Vec3b>(g,h).val[1]);
-                            data_trans->packets[cnt_packet]->data.emplace_back(ADC_crop[k][l].at<cv::Vec3b>(g,h).val[2]);
-                        }
-                    }
+                    ADC2CPU.emplace_back(Point(i+1, cnt+1)); //x -> CPU; y -> ADC
 
 //                    cout << "\tADC " << cnt+1 << endl;
-
-                    cnt_packet++;
                 }
             }
         }
     }
-    
+
     //cout ADC
-/*    for (int i=0; i < ADC_coord.size(); i++) {
+    for (int i=0; i < ADC_coord.size(); i++) {
         cout << "ADC " << i+1 << " P: " << ADC_coord[i].tl() << " \tsize: " << ADC_coord[i].size() << endl;
-    }*/
+    }
+
+    //cout ADC to CPU
+    for (auto i : ADC2CPU) {
+        cout << "CPU " << i.x << " ADC " << i.y << endl;
+    }
+
+    //example to create data transfer
+    //data transmisson
+    int cnt_packet = 0;
+    for (auto i : ADC2CPU) {
+        data_trans->createPacket(i.y, i.x);
+
+        for (int g=0; g < ADC_crop[i.y-1].size().width; g++) {
+            for (int h=0; h < ADC_crop[i.y-1].size().height; h++) { //
+                data_trans->packets[cnt_packet]->data.emplace_back(ADC_crop[i.y-1].at<cv::Vec3b>(g,h).val[0]); //blue
+                data_trans->packets[cnt_packet]->data.emplace_back(ADC_crop[i.y-1].at<cv::Vec3b>(g,h).val[1]); //green
+                data_trans->packets[cnt_packet]->data.emplace_back(ADC_crop[i.y-1].at<cv::Vec3b>(g,h).val[2]); //red
+            }
+        }
+        cnt_packet++;
+    }
 
     //cout PacketFactory
     for (auto p : data_trans->packets){ //short for: for (auto p = data_trans->packets.begin(); p != data_trans->packets.end(); p++)
@@ -313,10 +321,18 @@ int main(int arg_num, char *arg_vec[]) {
 //        cout << endl;
     }
 
-//    imshow("LK Demo", ADCs_crop [1][3]);
-    waitKey(0);
+
+    //    imshow("LK Demo", ADCs_crop [1][3]);
+//    waitKey(0);
 //        imshow("LK Demo", CPUs_crop [1][0]);
 //        waitKey(0);
+
+    //TODO:
+    /**
+     * wann fließen wo welche Daten von ADC <-> CPU Aufzeichnung von den RGB Werten die versckickt werden
+     * Detection: Farbbild wird von ADC zu CPU geschickt und in der CPU zu grey verarbeitet
+     * Tracking: neue Bilder werden eingelesen -> transfer zwischen eingelesen und verarbeiteten Bildern (goodFeaturesToTrack and CornersubPix)
+     */
 
     do {
         vector<Rect> Faces;

@@ -19,11 +19,6 @@ Packet* PacketFactory::createPacket(data_t addr_source, addr_t destination) {
     packets.push_back(p);
     return p;
 }
-//{
-//    auto p = new Packet;
-//    packets.push_back(p);
-//    return p;
-//}
 
 void PacketFactory::deletePacket(Packet* p)
 {
