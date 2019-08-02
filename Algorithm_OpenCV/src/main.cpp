@@ -54,7 +54,8 @@ int main(int arg_num, char *arg_vec[]) {
     ///intialization for tracking
     TermCriteria termcrit(TermCriteria::COUNT|TermCriteria::EPS,20,0.03);
     Size subPixWinSize(10,10), winSize(31,31);
-    Mat gray, prevGray, img, grey_b;
+    Mat gray, prevGray, grey_b;
+    Mat img;
     int* Faces_height;
     int* Faces_width;
     int* Faces_x;
@@ -153,13 +154,10 @@ int main(int arg_num, char *arg_vec[]) {
 
     ///initialization for calc ADC/CPU
     int img_width, img_height;
-    Mat ADC_crop, CPU_crop;
+    Mat ADC_crop[Sensor::nb_ADCs_x][Sensor::nb_ADCs_y];
+    Mat CPU_crop[Sensor::nb_CPUs_x][Sensor::nb_CPUs_y];
     vector<Rect> ADC_coord;
     vector<Rect> CPU_coord;
-    vector<char> daten;
-
-    daten.emplace_back('a');
-    daten.emplace_back('b');
 
     ///begin calc ADCs/CPUs
     //read image
@@ -173,32 +171,52 @@ int main(int arg_num, char *arg_vec[]) {
 
     img = imread(file,1); //read image
 
+//    Mat image(img.rows, img.cols, CV_8UC1);
+
+    ///LibRaw
+   /* file = "/home/mtzschoppe/Documents/git/3D-VSoC-demonstrator/Algorithm_OpenCV/portrait.nef";
+    if (iProcessor.open_file(file.c_str()) != LIBRAW_SUCCESS) {
+        fprintf(stderr, "Cannot open %s: %s\n", file.c_str(), libraw_strerror(iProcessor.open_file(file.c_str())));
+    }
+    iProcessor.unpack();
+    iProcessor.dcraw_process();
+
+    int ret = 0;
+    libraw_processed_image_t *image = iProcessor.dcraw_make_mem_image(&ret);
+
+    auto img = cv::Mat(image->height, image->width, CV_16UC3); //CV_16UC3
+
+    //create image from raw to colour
+    for (int i = 0; i < image->height; i++) {
+        for (int j = 0; j < image->width; j++) {
+            int linindex = (i * image->width + j)*3;
+            cv::Vec3s tripel = cv::Vec3s((short)image->data[linindex+2]*256, (short)image->data[linindex +1]*256, (short)image->data[linindex ]*256);
+            img.at<cv::Vec3s>(i, j) = tripel;
+        }
+    }*/
+
     img_width = img.size().width;
     img_height = img.size().height;
 
     cout << "image size: " << img.size() << endl;
 
-    imshow("LK Demo",  img);
-    waitKey(0);
+//    imshow("LK Demo",  img);
+//    waitKey(0);
 
     PacketFactory* data_trans = PacketFactory::getInstance();
-
-    int cnt_CPU = 0;
 
     //divide image to CPUs
     for (int i=0; i<Sensor::nb_CPUs_x; i++) {
         for (int j=0; j<Sensor::nb_CPUs_y; j++) {
-            cnt_CPU++;
-
             ///crop the image for each CPU
-//            CPU_crop = img(Rect(i * ceil(img_width / Sensor::nb_CPUs_x), j * ceil(img_height / Sensor::nb_CPUs_y),
+//            CPU_crop[i][j] = img(Rect(i * ceil(img_width / Sensor::nb_CPUs_x), j * ceil(img_height / Sensor::nb_CPUs_y),
 //                                    ceil(img_width / Sensor::nb_CPUs_x), ceil(img_height / Sensor::nb_CPUs_y))); //ceil(x) = roundup
 
             //calculate CPU coordinates
             CPU_coord.emplace_back(Rect(i * ceil(img_width / Sensor::nb_CPUs_x), j * ceil(img_height / Sensor::nb_CPUs_y),
                     ceil(img_width / Sensor::nb_CPUs_x), ceil(img_height / Sensor::nb_CPUs_y)));
 
-//            cout << "CPU " << cnt_CPU << " P: " << CPU_coord[i*ADC::nb_ADCs_y+j].tl() << "\tSize: " << CPU_coord[i*ADC::nb_ADCs_y+j].size() << endl;
+//            cout << "CPU " << i*Sensor::nb_CPUs_y+j << " P: " << CPU_coord[i*ADC::nb_ADCs_y+j].tl() << "\tSize: " << CPU_coord[i*ADC::nb_ADCs_y+j].size() << endl;
         }
     }
 
@@ -224,7 +242,7 @@ int main(int arg_num, char *arg_vec[]) {
             CPU_coord[i].height -= ceil(Sensor::MAX_OBJECT_SIZE_y/2);
         }
 
-        cout << "CPU " << i+1  << " P: " << CPU_coord[i].tl() << "\tSize: " << CPU_coord[i].size() << endl;
+//        cout << "CPU " << i+1  << " P: " << right << CPU_coord[i].tl() << "\tSize: " << right << CPU_coord[i].size() << endl;
     }
 
     int cnt_packet = 0;
@@ -233,89 +251,66 @@ int main(int arg_num, char *arg_vec[]) {
     for (int i=0; i<CPU_coord.size(); i++) {
 //        cout << "ADCs for CPU " << i+1 << ":" << endl;
 
-        int cnt_ADC = 0;
-
         //divide image to ADCs
         for (int k=0; k<Sensor::nb_ADCs_x; k++) {
             for (int l=0; l<Sensor::nb_ADCs_y; l++) {
-                cnt_ADC++;
+                int cnt = k*Sensor::nb_ADCs_y+l;
 
                 if (i < 1) { //only for one CPU
                     //crop the image for each ADC
-                    ADC_crop = img(Rect(k * ceil(img_width / Sensor::nb_ADCs_x), l * ceil(img_height / Sensor::nb_ADCs_y),
+                    ADC_crop[k][l] = img(Rect(k * ceil(img_width / Sensor::nb_ADCs_x), l * ceil(img_height / Sensor::nb_ADCs_y),
                             ceil(img_width / Sensor::nb_ADCs_x), ceil(img_height / Sensor::nb_ADCs_y))); //ceil(x) = roundup
 
                     //calculate ADC coordinates
                     ADC_coord.emplace_back(Rect(k * ceil(img_width / Sensor::nb_ADCs_x), l * ceil(img_height / Sensor::nb_ADCs_y),
-                            ceil(img_width / Sensor::nb_ADCs_x), ceil(img_height / Sensor::nb_ADCs_y)));
+                            ceil(img_width / Sensor::nb_ADCs_x), ceil(img_height / Sensor::nb_ADCs_y))); //[0] -> x; [1] -> y; [2] -> width; [3] -> height
                 }
 
                 //select ADCs
-                if (( //CPU 2 and 3
-                            k * ceil(img_width / Sensor::nb_ADCs_x) < (CPU_coord[i].x + CPU_coord[i].width)                                                 //x_ADC_begin < x_CPU_end
-                            && l * ceil(img_height / Sensor::nb_ADCs_y) < (CPU_coord[i].y + CPU_coord[i].height)                                            //y_ADC_begin < y_CPU_end
-                            && (k * ceil(img_width / Sensor::nb_ADCs_x) + ceil(img_width / Sensor::nb_ADCs_x)) > CPU_coord[i].x                             //x_ADC_end > x_CPU_begin
-                            && (l * ceil(img_height / Sensor::nb_ADCs_y) + ceil(img_height / Sensor::nb_ADCs_y)) > CPU_coord[i].y                           //y_ADC_end > y_CPU_begin
-                    ) || ( //CPU 1 and 4
-                            k * ceil(img_width / Sensor::nb_ADCs_x) >= CPU_coord[i].x                                                                       //x_ADC_begin >= x_CPU_begin
-                            && l * ceil(img_height / Sensor::nb_ADCs_y) >= CPU_coord[i].y                                                                   //y_ADC_begin >= y_CPU_begin
-                            && (k * ceil(img_width / Sensor::nb_ADCs_x) + ceil(img_width / Sensor::nb_ADCs_x)) <= (CPU_coord[i].x + CPU_coord[i].width)     //x_ADC_end <= x_CPU_end
-                            && (l * ceil(img_height / Sensor::nb_ADCs_y) + ceil(img_height / Sensor::nb_ADCs_y)) <= (CPU_coord[i].y + CPU_coord[i].height)  //y_ADC_end <= y_CPU_end
+                if (( //CPUs top left
+                            k * ADC_coord[cnt].width < (CPU_coord[i].x + CPU_coord[i].width)                                    //x_ADC_begin < x_CPU_end
+                            && l * ADC_coord[cnt].height < (CPU_coord[i].y + CPU_coord[i].height)                               //y_ADC_begin < y_CPU_end
+                            && (k * ADC_coord[cnt].width + ADC_coord[cnt].width) > CPU_coord[i].x                               //x_ADC_end > x_CPU_begin
+                            && (l * ADC_coord[cnt].height + ADC_coord[cnt].height) > CPU_coord[i].y                             //y_ADC_end > y_CPU_begin
+                    ) || ( //CPUs bottom right
+                            k * ADC_coord[cnt].width >= CPU_coord[i].x                                                          //x_ADC_begin >= x_CPU_begin
+                            && l * ADC_coord[cnt].height >= CPU_coord[i].y                                                      //y_ADC_begin >= y_CPU_begin
+                            && (k * ADC_coord[cnt].width + ADC_coord[cnt].width) <= (CPU_coord[i].x + CPU_coord[i].width)       //x_ADC_end <= x_CPU_end
+                            && (l * ADC_coord[cnt].height + ADC_coord[cnt].height) <= (CPU_coord[i].y + CPU_coord[i].height)    //y_ADC_end <= y_CPU_end
                     )) {
 
                     //create data transmission from colour image to grey image
-                    data_trans->createPacket(cnt_ADC, i+1);
+                    data_trans->createPacket(cnt+1, i+1);
 
-//                    for (int j=0; j < daten.size(); j++) {
-//                        data_trans->packets[cnt_packet]->data.emplace_back(daten[j]);
-//                    }
+                    for (int g=0; g < ADC_crop[k][l].size().width; g++) {
+                        for (int h=0; h < ADC_crop[k][l].size().height; h++) {
+                            data_trans->packets[cnt_packet]->data.emplace_back(ADC_crop[k][l].at<cv::Vec3b>(g,h).val[0]);
+                            data_trans->packets[cnt_packet]->data.emplace_back(ADC_crop[k][l].at<cv::Vec3b>(g,h).val[1]);
+                            data_trans->packets[cnt_packet]->data.emplace_back(ADC_crop[k][l].at<cv::Vec3b>(g,h).val[2]);
+                        }
+                    }
 
-//                    cout << "\tADC " << cnt_ADC << endl;
+//                    cout << "\tADC " << cnt+1 << endl;
 
                     cnt_packet++;
                 }
             }
         }
     }
-
-//    for (int i=0; i < ADC_crop.size().width; i++) {
-//        for (int j=0; j < ADC_crop.size().height; j++) {
-//            cout << ADC_crop.data << endl;
-//        }
-//    }
-
-    cout << "img Data: " << endl;
-
-    for (int i=0; i < 3; i++) {
-        for (int j=0; j < 3; j++) {
-            cout << ADC_crop.at<cv::Vec3b>(i,j) << endl;
-            cout << "img Data: " << endl;
-        }
-    }
-
-    for (int i=0; i < Sensor::nb_ADCs_x; i++) {
-        for (int j=0; j < Sensor::nb_ADCs_y; j++) {
-
-        }
-    }
-
-    for (int i=0; i < data_trans->packets.size(); i++) {
-        for (int j=0; j < daten.size(); j++) {
-            data_trans->packets[i]->data.emplace_back(daten[j]);
-        }
-    }
-
-    for (int i=0; i < ADC_coord.size(); i++) {
+    
+    //cout ADC
+/*    for (int i=0; i < ADC_coord.size(); i++) {
         cout << "ADC " << i+1 << " P: " << ADC_coord[i].tl() << " \tsize: " << ADC_coord[i].size() << endl;
-    }
+    }*/
 
+    //cout PacketFactory
     for (auto p : data_trans->packets){ //short for: for (auto p = data_trans->packets.begin(); p != data_trans->packets.end(); p++)
         cout << "Packet " << p->id+1 << ":" << p << endl;
-        cout << "\tData: ";
-        for (auto d : p->data) {
-            cout << d << ", ";
-        }
-        cout << endl;
+//        cout << "\tData: ";
+//        for (auto d : p->data) {
+//            cout << d;
+//        }
+//        cout << endl;
     }
 
 //    imshow("LK Demo", ADCs_crop [1][3]);
